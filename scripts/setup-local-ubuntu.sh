@@ -1,0 +1,1256 @@
+#!/bin/bash
+set -e
+
+# ========================================
+# グローバル変数（インストール対象フラグ）
+# ========================================
+
+# 基本開発環境
+INSTALL_BUILD_TOOLS=1       # build-essential
+INSTALL_BASIC_CLI=1         # tree, fzf, jq, ripgrep, fd, unzip, wslu
+INSTALL_GIT_TOOLS=1         # Git, GitHub CLI, git-secrets
+
+# プログラミング言語環境
+INSTALL_NODE=1              # Volta, Node.js, pnpm
+INSTALL_PYTHON=1            # uv, Python
+
+# コンテナツール
+INSTALL_CONTAINER=1         # Docker, Docker Compose
+
+# クラウドツール（個別選択可能）
+INSTALL_AWS_CLI=1           # AWS CLI
+INSTALL_AZURE_CLI=1         # Azure CLI
+INSTALL_GCLOUD_CLI=1        # Google Cloud CLI
+
+# AIツール（個別選択可能）
+INSTALL_CLAUDE_CODE=1       # Claude Code
+INSTALL_CODEX_CLI=1         # Codex CLI
+
+# 開発補助ツール
+INSTALL_DEV_TOOLS=1         # just, zoxide
+
+# ========================================
+# グローバル変数（実行時に設定される値）
+# ========================================
+
+# pnpm コマンドのパス（Volta インストール後に設定される）
+PNPM_CMD=""
+
+# ========================================
+# ユーティリティ関数
+# ========================================
+
+# シェル設定ファイルに行を追加する関数
+add_to_shell_config() {
+    local file="$1"
+    local pattern="$2"
+    local lines="$3"
+    local description="$4"
+
+    if [ -f "$file" ]; then
+        if grep -q "$pattern" "$file" 2>/dev/null; then
+            echo "  ⏭️  $file には既に設定済み"
+        else
+            echo "" >> "$file"
+            echo "$lines" >> "$file"
+            echo "  ✅ $description"
+        fi
+    else
+        if [ "$file" = "$HOME/.zshrc" ]; then
+            echo "  ⚠️  $file が見つかりません（zsh を使用していない場合は問題ありません）"
+        else
+            echo "  ⚠️  $file が見つかりません"
+        fi
+    fi
+}
+
+# Docker 公式リポジトリをセットアップする関数
+setup_docker_repository() {
+    # Docker 公式リポジトリが既に設定されているかを確認
+    if [ -f /etc/apt/sources.list.d/docker.list ] && grep -q "download.docker.com" /etc/apt/sources.list.d/docker.list 2>/dev/null; then
+        echo "  ⏭️  Docker 公式リポジトリは既にセットアップ済みです"
+        return
+    fi
+
+    echo "  ℹ️  Docker 公式リポジトリをセットアップしています..."
+
+    # 依存パッケージのインストール
+    sudo apt-get install -y ca-certificates curl gnupg > /dev/null
+
+    # GPG キーの登録
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    # リポジトリの追加
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    # パッケージリストの更新
+    sudo apt-get update > /dev/null
+
+    echo "  ✅ Docker 公式リポジトリをセットアップしました"
+}
+
+# ========================================
+# インストール関数群（依存関係順）
+# ========================================
+# 注意: 以下の関数は依存関係の順序で定義されています
+# 1. ビルドツール（最も基本的な依存、Python環境で必要）
+# 2. 基本CLIツール（unzipがクラウドツールで必要）
+# 3. Git/バージョン管理ツール
+# 4. Node.js環境（npmがAIツールで必要）
+# 5. Python環境（ビルドツールに依存）
+# 6. コンテナツール（Dev Container開発の中核）
+# 7. クラウドツール（unzipに依存）
+# 8. AIツール（npmに依存）
+# 9. 開発補助ツール
+
+# 1. ビルドツールのインストール（最も基本的な依存）
+install_build_tools() {
+    [ "$INSTALL_BUILD_TOOLS" != "1" ] && return
+
+    echo ""
+    echo "🔨 ビルドツールをインストール中..."
+
+    # build-essential のインストール・アップデート
+    if ! dpkg -l | grep -q build-essential; then
+        sudo apt-get install -y build-essential
+        echo "  ✅ build-essential インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade build-essential > /dev/null 2>&1
+        echo "  ⏭️  build-essential は最新版です"
+    fi
+
+    echo "✅ ビルドツールインストール完了"
+}
+
+# 2. 基本CLIツールのインストール
+install_basic_cli_tools() {
+    [ "$INSTALL_BASIC_CLI" != "1" ] && return
+
+    echo ""
+    echo "🔧 基本CLIツールをインストール中..."
+
+    # tree のインストール
+    if ! command -v tree &> /dev/null; then
+        sudo apt-get install -y tree
+        echo "  ✅ tree インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade tree > /dev/null 2>&1
+        echo "  ⏭️  tree は最新版です"
+    fi
+
+    # fzf のインストール
+    if ! command -v fzf &> /dev/null; then
+        sudo apt-get install -y fzf
+        echo "  ✅ fzf インストール完了"
+
+        # fzf のキーバインド設定を .zshrc に追加
+        add_to_shell_config ~/.zshrc "source /usr/share/doc/fzf/examples/key-bindings.zsh" "# fzf キーバインド（Ctrl+R で履歴検索）
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh" "fzf キーバインドを ~/.zshrc に追加しました"
+
+        # fzf のキーバインド設定を .bashrc に追加
+        add_to_shell_config ~/.bashrc "source /usr/share/doc/fzf/examples/key-bindings.bash" "# fzf キーバインド（Ctrl+R で履歴検索）
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash" "fzf キーバインドを ~/.bashrc に追加しました"
+    else
+        sudo apt-get install -y --only-upgrade fzf > /dev/null 2>&1
+        echo "  ⏭️  fzf は最新版です"
+    fi
+
+    # jq のインストール
+    if ! command -v jq &> /dev/null; then
+        sudo apt-get install -y jq
+        echo "  ✅ jq インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade jq > /dev/null 2>&1
+        echo "  ⏭️  jq は最新版です"
+    fi
+
+    # ripgrep のインストール
+    if ! command -v rg &> /dev/null; then
+        sudo apt-get install -y ripgrep
+        echo "  ✅ ripgrep インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade ripgrep > /dev/null 2>&1
+        echo "  ⏭️  ripgrep は最新版です"
+    fi
+
+    # fd のインストール
+    if ! command -v fd &> /dev/null; then
+        sudo apt-get install -y fd-find
+        echo "  ✅ fd インストール完了"
+        # Ubuntu では fd コマンドが fd-find という名前でインストールされるため、シンボリックリンクを作成
+        if [ ! -f "$HOME/.local/bin/fd" ]; then
+            mkdir -p "$HOME/.local/bin"
+            ln -s "$(which fdfind)" "$HOME/.local/bin/fd" 2>/dev/null || true
+            echo "  ✅ fd コマンドのシンボリックリンクを作成しました"
+        fi
+    else
+        sudo apt-get install -y --only-upgrade fd-find > /dev/null 2>&1
+        echo "  ⏭️  fd は最新版です"
+    fi
+
+    # unzip のインストール（AWS CLI に必要）
+    if ! command -v unzip &> /dev/null; then
+        sudo apt-get install -y unzip
+        echo "  ✅ unzip インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade unzip > /dev/null 2>&1
+        echo "  ⏭️  unzip は最新版です"
+    fi
+
+    # wslu のインストール（WSL2 でブラウザを開くために必要）
+    if ! command -v wslview &> /dev/null; then
+        sudo apt-get install -y wslu
+        echo "  ✅ wslu インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade wslu > /dev/null 2>&1
+        echo "  ⏭️  wslu は最新版です"
+    fi
+
+    echo "✅ 基本CLIツールインストール完了"
+}
+
+# 3. Gitツールのインストール
+install_git_tools() {
+    [ "$INSTALL_GIT_TOOLS" != "1" ] && return
+
+    echo ""
+    echo "🔧 バージョン管理ツールをインストール中..."
+
+    # Git公式PPAが既に追加されているかチェック
+    if [ ! -f /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list ]; then
+        sudo add-apt-repository -y ppa:git-core/ppa > /dev/null
+        sudo apt-get update > /dev/null
+    fi
+
+    # Git のインストール・アップデート
+    if ! command -v git &> /dev/null; then
+        sudo apt-get install -y git
+        echo "  ✅ Git インストール完了"
+    else
+        sudo apt-get install -y --only-upgrade git > /dev/null 2>&1
+        echo "  ⏭️  Git は最新安定版です"
+    fi
+
+    # GitHub CLI のインストール・アップデート
+    if ! command -v gh &> /dev/null; then
+        # GitHub CLI公式リポジトリを追加
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg > /dev/null 2>&1
+        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update > /dev/null 2>&1
+        sudo apt-get install -y gh
+        echo "  ✅ GitHub CLI インストール完了"
+    else
+        sudo apt-get update > /dev/null 2>&1
+        sudo apt-get install -y --only-upgrade gh > /dev/null 2>&1
+        echo "  ⏭️  GitHub CLI は最新安定版です"
+    fi
+
+    # git-secrets のインストール・アップデート
+    if [ ! -f /usr/local/bin/git-secrets ]; then
+        git clone https://github.com/awslabs/git-secrets.git /tmp/git-secrets
+        cd /tmp/git-secrets
+        sudo make install > /dev/null
+        cd - > /dev/null
+        rm -rf /tmp/git-secrets
+        echo "  ✅ git-secrets インストール完了"
+    else
+        echo "  ℹ️  git-secrets を最新版に更新中..."
+        git clone https://github.com/awslabs/git-secrets.git /tmp/git-secrets 2>/dev/null
+        cd /tmp/git-secrets
+        sudo make install > /dev/null 2>&1
+        cd - > /dev/null
+        rm -rf /tmp/git-secrets
+        echo "  ⏭️  git-secrets は最新版です"
+    fi
+
+    echo "✅ バージョン管理ツールインストール完了"
+}
+
+# 4. Node.js環境のインストール
+install_node_environment() {
+    [ "$INSTALL_NODE" != "1" ] && return
+
+    echo ""
+    echo "⚡ Volta をインストール中..."
+    if ! command -v volta &> /dev/null; then
+        # 注意: curl | bash パターンは公式のインストール方法（HTTPS使用）
+        curl https://get.volta.sh | bash
+        # Volta のパスを即座に通す
+        export VOLTA_HOME="$HOME/.volta"
+        export PATH="$VOLTA_HOME/bin:$PATH"
+        echo "✅ Volta インストール完了"
+    else
+        # Volta 公式インストーラーは既にインストール済みの場合、自動的に最新版にアップデート
+        echo "  ℹ️  Volta を最新版に更新中..."
+        curl https://get.volta.sh | bash > /dev/null 2>&1
+        export VOLTA_HOME="$HOME/.volta"
+        export PATH="$VOLTA_HOME/bin:$PATH"
+        echo "⏭️  Volta は最新版です"
+    fi
+
+    # Node.js と pnpm のインストール（Volta 経由）
+    echo ""
+    echo "📦 Node.js と pnpm を Volta でインストール中..."
+    if command -v volta &> /dev/null; then
+        # volta list で実際のインストール状況を確認（シムではなく実体を確認）
+        if volta list node 2>/dev/null | grep -q "^runtime node@"; then
+            # 既にインストール済みの場合も最新版に更新
+            volta install node > /dev/null 2>&1
+            echo "⏭️  Node.js は最新版です ($(node --version))"
+        else
+            volta install node
+            echo "✅ Node.js インストール完了 ($(node --version))"
+        fi
+
+        # Volta 経由でインストールされた pnpm の絶対パスを設定
+        # （pnpm setup や Codex CLI インストールで使用）
+        PNPM_CMD="$HOME/.volta/bin/pnpm"
+
+        if volta list pnpm 2>/dev/null | grep -q "^package pnpm@"; then
+            # 既にインストール済みの場合も最新版に更新
+            volta install pnpm > /dev/null 2>&1
+            echo "⏭️  pnpm は最新版です ($("$PNPM_CMD" --version 2>/dev/null || pnpm --version))"
+        else
+            volta install pnpm
+            echo "✅ pnpm インストール完了 ($("$PNPM_CMD" --version))"
+        fi
+    else
+        echo "⚠️  Volta が見つかりません"
+        echo "ℹ️  考えられる原因:"
+        echo "    - Volta のインストールが完了していない"
+        echo "    - インストール直後で PATH が反映されていない"
+        echo "ℹ️  対処法:"
+        echo "    1. ターミナルを完全に閉じて再ログイン（exit）"
+        echo "    2. このスクリプトを再実行"
+        echo "ℹ️  手動で確認: volta --version"
+    fi
+
+    # pnpm setup（環境を通して PATH を反映）
+    echo ""
+    echo "🛠️ pnpm setup を実行中..."
+    if [ -n "$PNPM_CMD" ] && [ -x "$PNPM_CMD" ]; then
+        if "$PNPM_CMD" setup > /dev/null; then
+            echo "✅ pnpm setup 完了"
+        else
+            echo "⚠️  pnpm setup に失敗しました"
+            echo "ℹ️  考えられる原因:"
+            echo "    - シェル設定ファイルへの書き込み権限がない"
+            echo "    - pnpm のバージョンが古い"
+            echo "ℹ️  対処法:"
+            echo "    1. ホームディレクトリの権限を確認: ls -la ~/"
+            echo "    2. pnpm のバージョンを確認: pnpm --version"
+            echo "ℹ️  手動で実行: pnpm setup"
+        fi
+    else
+        echo "⚠️  pnpm が見つかりません (PNPM_CMD: ${PNPM_CMD:-未設定})"
+        echo "ℹ️  考えられる原因:"
+        echo "    - Volta インストールセクションでエラーが発生した"
+            echo "    - pnpm のインストールに失敗した"
+        echo "ℹ️  対処法:"
+        echo "    1. 上記の Volta インストールセクションのログを確認"
+        echo "    2. 手動でインストール: volta install pnpm"
+        echo "ℹ️  手動で実行: pnpm setup"
+    fi
+}
+
+# 5. Python環境のインストール
+install_python_environment() {
+    [ "$INSTALL_PYTHON" != "1" ] && return
+
+    echo ""
+    echo "🐍 Python環境をインストール中..."
+
+    # uv のインストール・アップデート
+    if ! command -v uv &> /dev/null; then
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "  ✅ uv インストール完了"
+    else
+        echo "  ℹ️  uv を最新版に更新中..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1
+        echo "  ⏭️  uv は最新版です"
+    fi
+
+    # PATH を更新して uv を使えるようにする（インストール直後に必要）
+    # uv は ~/.local/bin にインストールされる
+    export PATH="$HOME/.local/bin:$PATH"
+
+    # uv管理下のPythonが存在するかチェック（システムのPythonは除外）
+    if ! uv python list 2>/dev/null | grep "cpython-" | grep -q "$HOME/.local/share/uv"; then
+        uv python install
+        echo "  ✅ Python (推奨版) インストール完了"
+    else
+        echo "  ℹ️  Python を最新推奨版に更新中..."
+        uv python install > /dev/null 2>&1
+        echo "  ⏭️  Python は最新推奨版です"
+    fi
+
+    echo "✅ Python環境インストール完了"
+}
+
+# 6. コンテナツールのインストール
+install_container_tools() {
+    [ "$INSTALL_CONTAINER" != "1" ] && return
+
+    echo ""
+    echo "🐳 コンテナツールをインストール中..."
+
+    # Docker のインストール・アップデート
+    if ! command -v docker &> /dev/null; then
+        if install_docker_engine_and_compose; then
+            echo "  ✅ Docker + Docker Compose インストール完了"
+        else
+            echo "  ⚠️  Docker のインストールに失敗しました"
+            return 1
+        fi
+    else
+        echo "  ℹ️  Docker を最新安定版に更新中..."
+        setup_docker_repository
+        sudo apt-get update > /dev/null 2>&1
+        sudo apt-get install -y --only-upgrade docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > /dev/null 2>&1
+        echo "  ⏭️  Docker は最新安定版です"
+    fi
+
+    # Docker サービスの起動
+    if ! sudo service docker status > /dev/null 2>&1; then
+        sudo service docker start > /dev/null
+        echo "  ✅ Docker サービス起動完了"
+    else
+        echo "  ⏭️  Docker サービスは既に起動しています"
+    fi
+
+    # 現在のユーザーを docker グループに追加
+    if ! groups | grep -q docker; then
+        sudo usermod -aG docker "$USER"
+        echo "  ✅ dockerグループに追加しました（次回ログイン時から有効）"
+    else
+        echo "  ⏭️  既にdockerグループに所属しています"
+    fi
+
+    echo "✅ コンテナツールインストール完了"
+}
+
+# 7. クラウドツールのインストール
+install_cloud_tools() {
+    local any_installed=0
+
+    # AWS CLI
+    if [ "$INSTALL_AWS_CLI" = "1" ]; then
+        [ "$any_installed" = "0" ] && { echo ""; echo "☁️ クラウドツールをインストール中..."; any_installed=1; }
+
+        if ! command -v aws &> /dev/null; then
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "/tmp/awscliv2.zip"
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            sudo /tmp/aws/install > /dev/null
+            rm -rf /tmp/aws /tmp/awscliv2.zip
+            echo "  ✅ AWS CLI インストール完了"
+        else
+            echo "  ℹ️  AWS CLI を最新版に更新中..."
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "/tmp/awscliv2.zip"
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            sudo /tmp/aws/install --update > /dev/null 2>&1
+            rm -rf /tmp/aws /tmp/awscliv2.zip
+            echo "  ⏭️  AWS CLI は最新版です"
+        fi
+    fi
+
+    # Azure CLI
+    if [ "$INSTALL_AZURE_CLI" = "1" ]; then
+        [ "$any_installed" = "0" ] && { echo ""; echo "☁️ クラウドツールをインストール中..."; any_installed=1; }
+
+        if ! command -v az &> /dev/null; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+            echo "  ✅ Azure CLI インストール完了"
+        else
+            echo "  ℹ️  Azure CLI を最新版に更新中..."
+            sudo apt-get update > /dev/null 2>&1
+            if sudo apt-get install -y --only-upgrade azure-cli > /dev/null 2>&1; then
+                echo "  ⏭️  Azure CLI は最新版です"
+            else
+                # パッケージが見つからない場合は再インストール
+                curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null 2>&1
+                echo "  ⏭️  Azure CLI は最新版です"
+            fi
+        fi
+    fi
+
+    # Google Cloud CLI
+    if [ "$INSTALL_GCLOUD_CLI" = "1" ]; then
+        [ "$any_installed" = "0" ] && { echo ""; echo "☁️ クラウドツールをインストール中..."; any_installed=1; }
+
+        if ! command -v gcloud &> /dev/null; then
+            echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | \
+                sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list > /dev/null
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
+                sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - > /dev/null 2>&1
+            sudo apt-get update > /dev/null 2>&1
+            sudo apt-get install -y google-cloud-cli > /dev/null
+            echo "  ✅ Google Cloud CLI インストール完了"
+        else
+            echo "  ℹ️  Google Cloud CLI を最新版に更新中..."
+            sudo apt-get update > /dev/null 2>&1
+            if sudo apt-get install -y --only-upgrade google-cloud-cli > /dev/null 2>&1; then
+                echo "  ⏭️  Google Cloud CLI は最新版です"
+            else
+                # パッケージが見つからない場合はスキップ（既にインストール済み）
+                echo "  ⏭️  Google Cloud CLI は既にインストール済みです"
+            fi
+        fi
+    fi
+
+    [ "$any_installed" = "1" ] && echo "✅ クラウドツールインストール完了"
+}
+
+# 8. AIツールのインストール
+install_ai_tools() {
+    local any_installed=0
+
+    # Claude Code
+    if [ "$INSTALL_CLAUDE_CODE" = "1" ]; then
+        [ "$any_installed" = "0" ] && { echo ""; echo "🤖 AIツールをインストール中..."; any_installed=1; }
+
+        if ! command -v claude &> /dev/null; then
+            npm install -g @anthropic-ai/claude-code
+            echo "  ✅ Claude Code インストール完了"
+        else
+            echo "  ℹ️  Claude Code を最新版に更新中..."
+            npm update -g @anthropic-ai/claude-code > /dev/null 2>&1
+            echo "  ⏭️  Claude Code は最新版です"
+        fi
+    fi
+
+    # Codex CLI
+    if [ "$INSTALL_CODEX_CLI" = "1" ]; then
+        [ "$any_installed" = "0" ] && { echo ""; echo "🤖 AIツールをインストール中..."; any_installed=1; }
+
+        if ! command -v codex &> /dev/null; then
+            npm install -g @openai/codex
+            echo "  ✅ Codex CLI インストール完了"
+        else
+            echo "  ℹ️  Codex CLI を最新版に更新中..."
+            npm update -g @openai/codex > /dev/null 2>&1
+            echo "  ⏭️  Codex CLI は最新版です"
+        fi
+    fi
+
+    [ "$any_installed" = "1" ] && echo "✅ AIツールインストール完了"
+}
+
+# 9. 開発補助ツールのインストール
+install_dev_tools() {
+    [ "$INSTALL_DEV_TOOLS" != "1" ] && return
+
+    echo ""
+    echo "🛠️ 開発補助ツールをインストール中..."
+
+    # just のインストール・アップデート
+    if ! command -v just &> /dev/null; then
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
+        echo "  ✅ just インストール完了"
+    else
+        echo "  ℹ️  just を最新版に更新中..."
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin --force > /dev/null 2>&1
+        echo "  ⏭️  just は最新版です"
+    fi
+
+    # zoxide のインストール・アップデート
+    if ! command -v zoxide &> /dev/null; then
+        curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+        echo "  ✅ zoxide インストール完了"
+
+        # PATH を更新して zoxide を使えるようにする（インストール直後に必要）
+        # zoxide は ~/.local/bin にインストールされる
+        export PATH="$HOME/.local/bin:$PATH"
+
+        # zoxide の初期化を .bashrc と .zshrc に追加
+        add_to_shell_config ~/.bashrc "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
+        add_to_shell_config ~/.zshrc "zoxide init zsh" 'eval "$(zoxide init zsh)"' "~/.zshrc に zoxide 初期化を追加しました"
+    else
+        echo "  ℹ️  zoxide を最新版に更新中..."
+        curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh > /dev/null 2>&1
+        echo "  ⏭️  zoxide は最新版です"
+    fi
+
+    echo "✅ 開発補助ツールインストール完了"
+}
+
+# ========================================
+# Docker関連のヘルパー関数
+# ========================================
+
+# Docker Compose (CLIプラグイン) をインストールするフォールバック実装
+install_docker_compose_binary() {
+    local compose_version="${DOCKER_COMPOSE_VERSION:-v2.27.0}"
+    local arch
+    case "$(uname -m)" in
+        x86_64|amd64)
+            arch="x86_64"
+            ;;
+        aarch64|arm64)
+            arch="aarch64"
+            ;;
+        *)
+            echo "  ⚠️  未対応アーキテクチャ ($(uname -m)) のため、Docker Compose バイナリの自動インストールに失敗しました"
+            return 1
+            ;;
+    esac
+
+    local plugin_dir="$HOME/.docker/cli-plugins"
+    mkdir -p "$plugin_dir"
+
+    echo "  ℹ️  Docker Compose バイナリ (${compose_version}, ${arch}) をダウンロードしています..."
+    if curl -fsSL "https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-linux-${arch}" \
+        -o "${plugin_dir}/docker-compose"; then
+        chmod +x "${plugin_dir}/docker-compose"
+        echo "  ✅ Docker Compose バイナリを ${plugin_dir} に配置しました"
+        return 0
+    fi
+
+    echo "  ⚠️  Docker Compose バイナリのダウンロードに失敗しました"
+    return 1
+}
+
+# Docker Engine と Compose Plugin をインストールする関数
+install_docker_engine_and_compose() {
+    setup_docker_repository
+
+    # Docker Engine + Compose Plugin をインストール
+    if sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin; then
+        return 0
+    fi
+
+    echo "  ⚠️  Docker 公式パッケージのインストールに失敗しました"
+    return 1
+}
+
+# ========================================
+# メイン処理開始
+# ========================================
+
+# ログ出力機能（SETUP_LOG 環境変数が設定されている場合）
+if [ -n "$SETUP_LOG" ]; then
+    # SETUP_LOG=1 または SETUP_LOG=true の場合はデフォルトパスを使用
+    if [ "$SETUP_LOG" = "1" ] || [ "$SETUP_LOG" = "true" ]; then
+        LOG_FILE="$HOME/setup-local-ubuntu-$(date +%Y%m%d-%H%M%S).log"
+    else
+        LOG_FILE="$SETUP_LOG"
+    fi
+    # プロセス置換と tee を使って標準出力とログファイルの両方に出力
+    # exec: 現在のシェルの stdout/stderr をリダイレクト
+    # tee -a: 標準出力とファイルの両方に追記（-a: append mode）
+    exec > >(tee -a "$LOG_FILE") 2>&1
+    echo "ℹ️  ログを $LOG_FILE に記録します"
+fi
+
+echo "🚀 WSL2/Ubuntu ローカル環境セットアップ開始"
+echo ""
+
+# ========================================
+# 1. 環境チェック
+# ========================================
+
+# スクリプトの実行環境チェック
+if [ ! -f /etc/os-release ]; then
+    echo "⚠️  このスクリプトは Linux 環境でのみ実行できます"
+    exit 1
+fi
+
+# Ubuntu/Debian系ディストリビューションのチェック
+if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
+    echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション用です"
+    echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
+    read -p "続行しますか？ (y/N): " -n 1 -r
+    echo
+    echo "ℹ️  ユーザー入力: $REPLY"  # ログに記録
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "スクリプトを中止しました"
+        exit 1
+    fi
+fi
+
+echo "✅ 実行環境チェック完了"
+echo ""
+
+# ========================================
+# 2. ツールの選択
+# ========================================
+
+# インストール対象ツールの選択
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📦 インストール対象ツールの選択"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "インストール可能なツール:"
+echo "  📌 基本CLIツール - tree, fzf, jq, ripgrep, fd, unzip, wslu"
+echo "  🔧 ビルドツール - build-essential"
+echo "  🔧 Git関連ツール - Git, GitHub CLI, git-secrets"
+echo "  📦 Node.js環境 - Volta, Node.js LTS, pnpm"
+echo "  🐍 Python環境 - uv, Python (最新安定版)"
+echo "  🐳 コンテナツール - Docker Engine, Docker Compose"
+echo "  ☁️ クラウドツール - AWS CLI, Azure CLI, Google Cloud CLI"
+echo "  🤖 AIツール - Claude Code, Codex CLI"
+echo "  🛠️ 開発補助ツール - just, zoxide"
+echo ""
+echo "すべてのツールをインストールしますか？"
+echo "  y: すべてインストール（デフォルト）"
+echo "  n: 個別に選択"
+echo ""
+read -p "選択 [Y/n]: " -n 1 -r INSTALL_ALL
+echo ""
+echo "ℹ️  ユーザー入力: ${INSTALL_ALL:-Y}"
+
+if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "各カテゴリのインストール設定"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+
+    # 基本CLIツール
+    read -p "📌 基本CLIツール (tree, fzf, jq, ripgrep, fd) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BASIC_CLI=0
+
+    # ビルドツール
+    read -p "🔧 ビルドツール (build-essential) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BUILD_TOOLS=0
+
+    # Git関連ツール
+    read -p "🔧 Git関連ツール (Git, GitHub CLI, git-secrets) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GIT_TOOLS=0
+
+    # Node.js環境
+    read -p "📦 Node.js環境 (Volta, Node.js, pnpm) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_NODE=0
+
+    # Python環境
+    read -p "🐍 Python環境 (uv, Python) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_PYTHON=0
+
+    # コンテナツール
+    read -p "🐳 コンテナツール (Docker, Docker Compose) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CONTAINER=0
+
+    # クラウドツール（個別）
+    echo ""
+    echo "☁️ クラウドツール:"
+    read -p "  AWS CLI をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AWS_CLI=0
+
+    read -p "  Azure CLI をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AZURE_CLI=0
+
+    read -p "  Google Cloud CLI をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GCLOUD_CLI=0
+
+    # AIツール（個別）
+    echo ""
+    echo "🤖 AIツール:"
+    read -p "  Claude Code をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CLAUDE_CODE=0
+
+    read -p "  Codex CLI をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CODEX_CLI=0
+
+    # 開発補助ツール
+    echo ""
+    read -p "🛠️ 開発補助ツール (just, zoxide) をインストールしますか? [Y/n]: " -n 1 -r
+    echo ""
+    [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_DEV_TOOLS=0
+fi
+
+echo ""
+echo "✅ インストール対象ツールの選択完了"
+echo ""
+
+# ========================================
+# 3. 初期設定（ユーザー入力）
+# ========================================
+
+# ユーザー入力セクション（まとめて最初に実行）
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📝 初期設定（ユーザー入力が必要な項目）"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# sudo パスワード確認（最初に実行してキャッシュ）
+echo "🔐 sudo パスワードの確認..."
+if sudo -v; then
+    echo "✅ sudo パスワード確認完了"
+else
+    echo "⚠️  sudo パスワードの確認に失敗しました"
+    exit 1
+fi
+echo ""
+
+# Git ユーザー情報の事前確認・設定
+echo "🔧 Git ユーザー情報の確認..."
+
+# user.name の確認・設定
+if ! git config --global user.name &> /dev/null || [ -z "$(git config --global user.name)" ]; then
+    echo ""
+    echo "📝 Git ユーザー名が未設定です"
+    read -e -p "Git ユーザー名を入力してください（例: Taro Yamada）: " -i "$USER" git_user_name
+    echo "ℹ️  入力値: $git_user_name"  # ログに記録
+    # 空白文字のみの入力をチェック
+    if [ -n "$git_user_name" ] && [ -n "${git_user_name// }" ]; then
+        git config --global user.name "$git_user_name"
+        echo "  ✅ user.name を設定しました: $git_user_name"
+    else
+        echo "  ⚠️  ユーザー名が入力されませんでした（後で 'git config --global user.name \"Your Name\"' で設定してください）"
+    fi
+else
+    echo "  ⏭️  user.name は既に設定済み: $(git config --global user.name)"
+fi
+
+# user.email の確認・設定
+if ! git config --global user.email &> /dev/null || [ -z "$(git config --global user.email)" ]; then
+    echo ""
+    echo "📝 Git メールアドレスが未設定です"
+    read -e -p "Git メールアドレスを入力してください（例: your.email@example.com）: " git_user_email
+    echo "ℹ️  入力値: $git_user_email"  # ログに記録
+    if [ -n "$git_user_email" ]; then
+        # 基本的なメールアドレス形式のバリデーション
+        if [[ "$git_user_email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+            git config --global user.email "$git_user_email"
+            echo "  ✅ user.email を設定しました: $git_user_email"
+        else
+            echo "  ⚠️  無効なメールアドレス形式です（後で 'git config --global user.email \"you@example.com\"' で設定してください）"
+        fi
+    else
+        echo "  ⚠️  メールアドレスが入力されませんでした（後で 'git config --global user.email \"you@example.com\"' で設定してください）"
+    fi
+else
+    echo "  ⏭️  user.email は既に設定済み: $(git config --global user.email)"
+fi
+
+echo ""
+echo "✅ 初期設定完了"
+echo ""
+
+# ========================================
+# 4. システムパッケージの更新と環境設定
+# ========================================
+
+# Locale と Timezone の設定
+echo "🌏 ロケールとタイムゾーンを設定中..."
+
+# タイムゾーンの設定（JST）
+if [ "$(cat /etc/timezone 2>/dev/null)" != "Asia/Tokyo" ]; then
+    sudo timedatectl set-timezone Asia/Tokyo 2>/dev/null || sudo ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+    echo "  ✅ タイムゾーンを Asia/Tokyo に設定しました"
+else
+    echo "  ⏭️  タイムゾーンは既に Asia/Tokyo に設定済み"
+fi
+
+# ロケールの設定（ja_JP.UTF-8）
+if ! locale -a 2>/dev/null | grep -q "^ja_JP.utf8"; then
+    sudo apt-get install -y locales
+    sudo locale-gen ja_JP.UTF-8
+    echo "  ✅ ja_JP.UTF-8 ロケールを生成しました"
+else
+    echo "  ⏭️  ja_JP.UTF-8 ロケールは既に生成済み"
+fi
+
+# LANG 環境変数の設定
+add_to_shell_config ~/.zshrc "export LANG=ja_JP.UTF-8" "export LANG=ja_JP.UTF-8" "~/.zshrc に LANG を設定しました"
+add_to_shell_config ~/.bashrc "export LANG=ja_JP.UTF-8" "export LANG=ja_JP.UTF-8" "~/.bashrc に LANG を設定しました"
+
+echo "✅ ロケールとタイムゾーン設定完了"
+echo ""
+
+# devcontainer マウント用のディレクトリ/ファイル作成
+echo "📁 devcontainer マウント用のディレクトリ/ファイルを準備中..."
+
+# ディレクトリの作成（存在しない場合のみ）
+if [ ! -d ~/.aws ]; then
+    mkdir -p ~/.aws
+    echo "  ✅ ~/.aws を作成しました"
+fi
+
+if [ ! -d ~/.claude ]; then
+    mkdir -p ~/.claude
+    echo "  ✅ ~/.claude を作成しました"
+fi
+
+if [ ! -d ~/.gemini ]; then
+    mkdir -p ~/.gemini
+    echo "  ✅ ~/.gemini を作成しました"
+fi
+
+if [ ! -d ~/.config/gh ]; then
+    mkdir -p ~/.config/gh
+    echo "  ✅ ~/.config/gh を作成しました"
+fi
+
+if [ ! -d ~/.local/share/pnpm ]; then
+    mkdir -p ~/.local/share/pnpm
+    echo "  ✅ ~/.local/share/pnpm を作成しました"
+fi
+
+# PNPM_HOME の設定（未設定の場合のみ）
+# pnpm がグローバルパッケージをインストールするディレクトリを指定
+if [ -z "$PNPM_HOME" ]; then
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+    echo "  ✅ PNPM_HOME を $PNPM_HOME に設定しました"
+else
+    echo "  ⏭️  PNPM_HOME は既に $PNPM_HOME に設定済み"
+fi
+
+# 現在のシェルセッションの PATH に PNPM_HOME を追加
+# （永続的な設定は後続の「PATH 環境変数を設定中」セクションで行う）
+# パターンマッチング: ":$PATH:" の中に ":$PNPM_HOME:" が含まれているかチェック
+if [[ ":$PATH:" != *":$PNPM_HOME:"* ]]; then
+    export PATH="$PNPM_HOME:$PATH"
+    echo "  ✅ PATH に PNPM_HOME ($PNPM_HOME) を追加しました"
+else
+    echo "  ⏭️  PATH には既に PNPM_HOME ($PNPM_HOME) が含まれています"
+fi
+
+# ファイルの作成（存在しない場合のみ）
+# zsh を使用している場合のみ .zsh_history を作成
+if [ -f ~/.zshrc ] && [ ! -f ~/.zsh_history ]; then
+    touch ~/.zsh_history
+    echo "  ✅ ~/.zsh_history を作成しました"
+fi
+
+if [ ! -f ~/.gitconfig ]; then
+    touch ~/.gitconfig
+    echo "  ✅ ~/.gitconfig を作成しました"
+fi
+
+# Claude設定ファイル（存在しない場合はデフォルト設定で作成）
+if [ ! -f ~/.claude.json ]; then
+    echo '{}' > ~/.claude.json
+    echo "  ✅ ~/.claude.json を作成しました"
+fi
+
+echo "✅ devcontainer マウント用ファイル準備完了"
+echo ""
+
+# 基本パッケージの更新と必要なビルドツールのインストール
+echo "📦 システムパッケージを更新中..."
+if sudo apt-get update > /dev/null; then
+    echo "✅ システムパッケージ更新完了"
+else
+    echo "⚠️  システムパッケージの更新に失敗しました"
+    echo "ℹ️  考えられる原因:"
+    echo "    - ネットワーク接続の問題"
+    echo "    - パッケージリポジトリの障害"
+    echo "    - /etc/apt/sources.list の設定ミス"
+    echo "ℹ️  手動で確認: sudo apt-get update"
+    exit 1
+fi
+
+# 依存パッケージのインストール
+echo ""
+echo "🔧 依存パッケージをインストール中..."
+
+# curl のインストール（Volta、uv、AWS CLI等に必要）
+if ! command -v curl &> /dev/null; then
+    sudo apt-get install -y curl
+    echo "  ✅ curl インストール完了"
+else
+    echo "  ⏭️  curl は既にインストール済み"
+fi
+
+# git のインストール（最新安定版、git-secrets等に必要）
+echo ""
+echo "🔧 Git（最新安定版）をインストール中..."
+
+# Git公式PPAが既に追加されているかチェック
+if [ ! -f /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list ]; then
+    echo "  ℹ️  Git公式PPAを追加しています..."
+    # add-apt-repository は software-properties-common パッケージに含まれる
+    if ! command -v add-apt-repository &> /dev/null; then
+        sudo apt-get install -y software-properties-common > /dev/null
+    fi
+    # -y: 自動的に yes と応答
+    sudo add-apt-repository -y ppa:git-core/ppa > /dev/null
+    sudo apt-get update > /dev/null
+    echo "  ✅ Git公式PPAを追加しました"
+fi
+
+if ! command -v git &> /dev/null; then
+    sudo apt-get install -y git
+    echo "✅ Git インストール完了"
+else
+    # 既にインストール済みの場合も、最新版にアップデート
+    CURRENT_VERSION=$(git --version 2>/dev/null | awk '{print $3}')
+    sudo apt-get install -y --only-upgrade git > /dev/null 2>&1
+    NEW_VERSION=$(git --version 2>/dev/null | awk '{print $3}')
+
+    if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+        echo "✅ Git を最新安定版にアップデートしました ($CURRENT_VERSION → $NEW_VERSION)"
+    else
+        echo "⏭️  Git は既に最新安定版です ($CURRENT_VERSION)"
+    fi
+fi
+
+echo "✅ 依存パッケージインストール完了"
+
+# ========================================
+# 5. インストール処理（関数呼び出し）
+# ========================================
+# 注意: 依存関係の順序で実行されます
+# 1. ビルドツール → 2. 基本CLIツール → 3. Git → 4. Node.js → 5. Python
+# → 6. コンテナツール → 7. クラウドツール → 8. AIツール → 9. 開発補助ツール
+
+# 1. ビルドツールのインストール
+install_build_tools
+
+# 2. 基本CLIツールのインストール
+install_basic_cli_tools
+
+# 3. Gitツールのインストール
+install_git_tools
+
+# 4. Node.js環境のインストール
+install_node_environment
+
+# 5. Python環境のインストール
+install_python_environment
+
+# 6. コンテナツールのインストール
+install_container_tools
+
+# 7. クラウドツールのインストール
+install_cloud_tools
+
+# 8. AIツールのインストール
+install_ai_tools
+
+# 9. 開発補助ツールのインストール
+install_dev_tools
+
+# ========================================
+# 6. 環境設定（PATH、Git設定等）
+# ========================================
+
+# Git の追加設定
+if command -v git &> /dev/null; then
+    echo ""
+    echo "🔧 Git のその他の設定を行っています..."
+
+    # デフォルトブランチ名を main に設定
+    if ! git config --global init.defaultBranch &> /dev/null || [ -z "$(git config --global init.defaultBranch)" ]; then
+        git config --global init.defaultBranch main
+        echo "  ✅ init.defaultBranch を main に設定しました"
+    else
+        echo "  ⏭️  init.defaultBranch は既に $(git config --global init.defaultBranch) に設定済み"
+    fi
+
+    # エディタを vim に設定（未設定の場合のみ）
+    if ! git config --global core.editor &> /dev/null || [ -z "$(git config --global core.editor)" ]; then
+        git config --global core.editor vim
+        echo "  ✅ core.editor を vim に設定しました"
+    else
+        echo "  ⏭️  core.editor は既に $(git config --global core.editor) に設定済み"
+    fi
+
+    # 改行コード自動変換設定（WSL2 では input が推奨）
+    if [ "$(git config --global core.autocrlf)" != "input" ]; then
+        git config --global core.autocrlf input
+        echo "  ✅ core.autocrlf を input に設定しました（コミット時にCRLF→LF変換）"
+    else
+        echo "  ⏭️  core.autocrlf は既に input に設定済み"
+    fi
+
+    # ファイルの実行権限を追跡（WSL2 でのファイル権限管理）
+    if [ "$(git config --global core.fileMode)" != "true" ]; then
+        git config --global core.fileMode true
+        echo "  ✅ core.fileMode を true に設定しました（実行権限追跡）"
+    else
+        echo "  ⏭️  core.fileMode は既に true に設定済み"
+    fi
+
+    # git pull 時の rebase をデフォルトに
+    if [ "$(git config --global pull.rebase)" != "false" ]; then
+        git config --global pull.rebase false
+        echo "  ✅ pull.rebase を false に設定しました"
+    else
+        echo "  ⏭️  pull.rebase は既に false に設定済み"
+    fi
+
+    # git-secrets のグローバルフックを設定
+    if command -v git-secrets &> /dev/null; then
+        # git-secrets --install は ~/.git/templates/git-secrets にフックをインストール
+        # この操作は冪等性があり、既にインストール済みの場合は何もしない
+        git secrets --install ~/.git/templates/git-secrets > /dev/null 2>&1 || true
+        echo "  ✅ git-secrets グローバルフックを設定しました"
+
+        # AWS 認証情報パターンを登録
+        git secrets --register-aws --global > /dev/null 2>&1 || true
+        echo "  ✅ AWS 認証情報パターンを登録しました"
+    fi
+
+    echo "✅ Git 設定完了"
+fi
+
+# BROWSER 環境変数の設定（WSL2 でブラウザを開くために必要）
+echo ""
+echo "🌐 BROWSER 環境変数を設定中..."
+add_to_shell_config ~/.zshrc "export BROWSER=wslview" "# WSL2 でブラウザを開くための設定
+export BROWSER=wslview" "~/.zshrc に BROWSER 環境変数を追加しました"
+add_to_shell_config ~/.bashrc "export BROWSER=wslview" "# WSL2 でブラウザを開くための設定
+export BROWSER=wslview" "~/.bashrc に BROWSER 環境変数を追加しました"
+
+# Volta、uv、just の PATH 設定
+echo ""
+echo "🔧 PATH 環境変数を設定中..."
+
+# Volta PATH 設定（パターン: VOLTA_HOME に .volta を含む設定）
+add_to_shell_config ~/.zshrc "VOLTA_HOME.*\.volta" "# Volta（Node.js バージョン管理）
+export VOLTA_HOME=\"\$HOME/.volta\"
+export PATH=\"\$VOLTA_HOME/bin:\$PATH\"" "~/.zshrc に Volta の PATH を追加しました"
+add_to_shell_config ~/.bashrc "VOLTA_HOME.*\.volta" "# Volta（Node.js バージョン管理）
+export VOLTA_HOME=\"\$HOME/.volta\"
+export PATH=\"\$VOLTA_HOME/bin:\$PATH\"" "~/.bashrc に Volta の PATH を追加しました"
+
+# pnpm PATH 設定（パターン: PNPM_HOME に .local/share/pnpm を含む設定）
+add_to_shell_config ~/.zshrc "PNPM_HOME.*\.local/share/pnpm" "# pnpm（パッケージマネージャ）
+export PNPM_HOME=\"\$HOME/.local/share/pnpm\"
+export PATH=\"\$PNPM_HOME:\$PATH\"" "~/.zshrc に pnpm の PATH を追加しました"
+add_to_shell_config ~/.bashrc "PNPM_HOME.*\.local/share/pnpm" "# pnpm（パッケージマネージャ）
+export PNPM_HOME=\"\$HOME/.local/share/pnpm\"
+export PATH=\"\$PNPM_HOME:\$PATH\"" "~/.bashrc に pnpm の PATH を追加しました"
+
+# ~/.local/bin PATH 設定（パターン: PATH に .local/bin を含む設定）
+add_to_shell_config ~/.zshrc "PATH.*\.local/bin" "# uv と just と codex の PATH
+export PATH=\"\$HOME/.local/bin:\$PATH\"" "~/.zshrc に ~/.local/bin の PATH を追加しました"
+add_to_shell_config ~/.bashrc "PATH.*\.local/bin" "# uv と just と codex の PATH
+export PATH=\"\$HOME/.local/bin:\$PATH\"" "~/.bashrc に ~/.local/bin の PATH を追加しました"
+
+echo "✅ PATH 環境変数設定完了"
+
+# ========================================
+# 7. セットアップ完了メッセージ
+# ========================================
+
+# セットアップ結果のサマリー表示
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 セットアップ結果"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# システム設定
+echo ""
+echo "🌏 システム設定:"
+echo "  タイムゾーン: $(cat /etc/timezone 2>/dev/null || echo '不明')"
+# 設定ファイルから LANG を取得（現在のシェルセッションの値ではなく、永続的な設定を確認）
+# grep: 行頭が "export LANG=" で始まる行を検索
+# head -n1: 最初にマッチした1行のみ取得（.zshrc または .bashrc）
+# cut -d'=' -f2: = で分割して2番目のフィールド（値の部分）を取得
+# ||: 設定が見つからない場合は現在の LANG 値、それも未設定なら "未設定" を表示
+CONFIGURED_LANG=$(grep "^export LANG=" ~/.zshrc ~/.bashrc 2>/dev/null | head -n1 | cut -d'=' -f2 || echo "${LANG:-未設定}")
+echo "  ロケール:     $CONFIGURED_LANG"
+echo "  シェル:       $SHELL"
+
+# Git 設定
+echo ""
+echo "🔧 Git 設定:"
+echo "  user.name:           $(git config --global user.name 2>/dev/null || echo '未設定')"
+echo "  user.email:          $(git config --global user.email 2>/dev/null || echo '未設定')"
+echo "  init.defaultBranch:  $(git config --global init.defaultBranch 2>/dev/null || echo '未設定')"
+echo "  core.editor:         $(git config --global core.editor 2>/dev/null || echo '未設定')"
+echo "  core.autocrlf:       $(git config --global core.autocrlf 2>/dev/null || echo '未設定')"
+echo "  core.fileMode:       $(git config --global core.fileMode 2>/dev/null || echo '未設定')"
+
+# インストールされたツール
+echo ""
+echo "🔧 インストールされたツール:"
+echo ""
+echo "  🔨 ビルドツール:"
+echo "    build-essential: $(dpkg -l | grep -q build-essential && echo 'インストール済み' || echo '未インストール')"
+echo ""
+echo "  📌 基本CLIツール:"
+echo "    tree:           $(tree --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo "    fzf:            $(fzf --version 2>/dev/null || echo '未インストール')"
+echo "    jq:             $(jq --version 2>/dev/null || echo '未インストール')"
+echo "    ripgrep (rg):   $(rg --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo "    fd:             $(fd --version 2>/dev/null || echo '未インストール')"
+echo ""
+echo "  🔧 バージョン管理:"
+echo "    Git:            $(git --version 2>/dev/null || echo '未インストール')"
+echo "    GitHub CLI:     $(gh --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo "    git-secrets:    $(command -v git-secrets &> /dev/null && echo 'インストール済み' || echo '未インストール')"
+echo ""
+echo "  📦 Node.js エコシステム:"
+echo "    Volta:          $(volta --version 2>/dev/null || echo '未インストール')"
+echo "    Node.js:        $(node --version 2>/dev/null || echo '未インストール')"
+echo "    pnpm:           $("$PNPM_CMD" --version 2>/dev/null || pnpm --version 2>/dev/null || echo '未インストール')"
+echo ""
+echo "  🐍 Python エコシステム:"
+echo "    uv:             $(uv --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo "    Python:         $(python3 --version 2>/dev/null || echo '未インストール')"
+echo ""
+echo "  🐳 コンテナツール:"
+echo "    Docker:         $(docker --version 2>/dev/null || echo '未インストール')"
+echo "    Docker Compose: $(docker compose version 2>/dev/null || echo '未インストール')"
+echo ""
+echo "  ☁️ クラウドツール:"
+echo "    AWS CLI:        $(aws --version 2>/dev/null || echo '未インストール')"
+echo "    Azure CLI:      $(az --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo "    Google Cloud:   $(gcloud --version 2>/dev/null | head -n1 || echo '未インストール')"
+echo ""
+echo "  🤖 AIツール:"
+echo "    Claude Code:    $(claude --version 2>/dev/null || echo '未インストール')"
+echo "    Codex CLI:      $(codex --version 2>/dev/null || echo '未インストール')"
+echo ""
+echo "  🛠️ 開発補助ツール:"
+echo "    just:           $(just --version 2>/dev/null || echo '未インストール')"
+echo "    zoxide:         $(zoxide --version 2>/dev/null || echo '未インストール')"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+echo ""
+echo "🎉 セットアップ完了！"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "次のステップ:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "1. ターミナルを完全に閉じて再ログイン:"
+echo "   exit"
+echo ""
+echo "2. クラウド認証情報を設定:"
+echo "   # AWS (どちらかを実行)"
+echo "   aws configure      # IAM ユーザーの場合"
+echo "   aws configure sso  # SSO の場合"
+echo ""
+echo "   # Azure"
+echo "   az login"
+echo ""
+echo "   # Google Cloud"
+echo "   gcloud init"
+echo ""
+echo "3. GitHub 認証:"
+echo "   gh auth login"
+echo ""
+echo "4. AI ツール認証:"
+echo "   claude auth login  # Claude Code"
+echo "   codex auth login   # Codex CLI"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+if [ -n "$SETUP_LOG" ]; then
+    echo "ℹ️  セットアップログ: $LOG_FILE"
+    echo ""
+fi
