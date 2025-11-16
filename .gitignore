@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# Private/Sensitive files
+private/
+sensitive/
+*.private.md
+
+# OS generated files
+.Spotlight-V100
+.Trashes
+
+# Node.js (for MCP servers)
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Environment variables
+.env
+.env.local
