@@ -215,7 +215,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
    - **Codex CLI** - OpenAI Codex CLI (code generation AI)
    - **GitHub Copilot CLI** - GitHub Copilot coding agent for the terminal
    - **Gemini CLI** - Google Gemini AI agent for the terminal
-   - Each agent reads its own project-level instruction file (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `GEMINI.md`) for shared conventions (commit rules, branch strategy, verification commands)
+   - Multi-agent support: shared skills in `.agents/skills/` (Agent Skills standard), `AGENTS.md` as common entry point, Claude Code overlays in `.claude/skills/`
 9. **Development Utilities**
    - **just** - Task runner
    - **zoxide** - Smarter cd command with directory jumping

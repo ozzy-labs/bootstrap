@@ -1,24 +1,23 @@
 # CLAUDE.md
 
-## プロジェクト概要
+共通方針は AGENTS.md を参照。以下は Claude Code 固有の設定。
 
-`<project-name>`: <description>
+## 基本ルール
 
-## 主要コマンド
+- ユーザーへの確認には `AskUserQuestion` を使用する
 
-```bash
-pnpm install               # 依存関係インストール
-pnpm run dev               # 開発サーバー起動
-pnpm run build             # プロダクションビルド
-```
+## Available Skills
 
-## 検証（必須）
+- `/implement` — Issue または指示をもとに、ブランチ作成・実装
+- `/lint` — 全リンターを自動修正付きで実行
+- `/test` — ビルド・テスト・型チェックを実行
+- `/commit` — 変更をステージし、Conventional Commits でコミット
+- `/pr` — 変更を push し、PR を作成・更新
+- `/review` — コード変更や PR をレビュー
+- `/ship` — lint・コミット・PR 作成を一括実行
+- `/drive` — implement + ship + review loop（Issue から merge-ready な PR まで自律駆動）
 
-コード変更後、報告前に以下を通すこと:
+## Skills の共通ルール
 
-1. `pnpm run build` — ビルド成功
-2. `pnpm run typecheck` — 型チェック通過
-
-## 規約
-
-言語・コミット・ブランチ・PR のルールは README.md を参照すること。
+- スキル完了時のネクストアクション提案には `AskUserQuestion` を使用する
+- ネクストアクションはユーザーの確認なく実行しない

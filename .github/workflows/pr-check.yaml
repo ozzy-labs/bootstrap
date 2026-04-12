@@ -18,7 +18,7 @@ jobs:
         with:
           script: |
             const title = context.payload.pull_request.title;
-            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!?:\s.+/;
+            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?!?:\s.+/;
 
             if (!pattern.test(title)) {
               core.setFailed(
@@ -40,7 +40,7 @@ jobs:
         with:
           script: |
             const branch = context.payload.pull_request.head.ref;
-            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)\/[a-z0-9-]+$/;
+            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)\/.+/;
 
             if (branch === 'main') {
               core.info('Branch is main, skipping check');

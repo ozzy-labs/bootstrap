@@ -1,56 +1,54 @@
 # AGENTS.md
 
-## Project overview
+このファイルは AI エージェント向けの共通 instructions です。
+
+## 基本方針
+
+- 日本語で応答する
+- 推奨案とその理由を提示する
+- `.env` ファイルは読み取り・ステージングしない
+- 破壊的な Git 操作を避ける
+
+## プロジェクト概要
 
 `<project-name>`: <description>
 
-## Key commands
+## Tech Stack
+
+- Runtime: Node.js (ESM)
+- Package manager: pnpm
+- Version management: mise (`.mise.toml`)
+
+## 主要コマンド
 
 ```bash
-pnpm install               # Install dependencies
-pnpm run dev               # Start dev server
-pnpm run build             # Production build
+pnpm install               # 依存関係インストール
+pnpm run dev               # 開発サーバー起動
+pnpm run build             # プロダクションビルド
 ```
 
-## Verification (required)
+## 検証（必須）
 
-Before reporting code changes, pass the following:
+コード変更後、報告前に以下を通すこと:
 
-1. `pnpm run build` — Build succeeds
-2. `pnpm run typecheck` — Type check passes
+1. `pnpm run build` — ビルド成功
+2. `pnpm run typecheck` — 型チェック通過
 
-## Conventions
+## コーディング規約
 
-See README.md for language, commit, branch, and PR rules.
+- インデント: 2 スペース
+- 改行コード: LF
+- ファイル末尾: 改行あり
 
-## Git workflow
+## 規約
 
-### Branching
+言語・コミット・ブランチ・PR のルールは README.md を参照すること。
 
-- Create branches from `main`
-- Naming: `<type>/<short-description>` (e.g., `feat/add-blog`, `fix/nav-error`)
-- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
+## Adapter Files
 
-### Commits
-
-Use Conventional Commits:
-
-```text
-<type>[optional scope]: <description>
-```
-
-- Description in English, concise
-- Breaking changes: add `!` after type (e.g., `feat!: redesign landing page`)
-
-### Pull requests
-
-- Merge method: **squash merge only**
-- PR title: same format as commit messages
-- Delete feature branch after merge
-
-### Prohibited
-
-- Direct push to `main`
-- Force push (`--force`)
-- Staging `.env` files
-- Skipping hooks (`--no-verify`)
+| Agent | Configuration |
+|-------|---------------|
+| Claude Code | `CLAUDE.md`, `.claude/` |
+| Gemini CLI | `.gemini/settings.json` → `AGENTS.md` |
+| Codex CLI | `AGENTS.md` + `.agents/skills/` |
+| GitHub Copilot | `AGENTS.md` + `.agents/skills/` |

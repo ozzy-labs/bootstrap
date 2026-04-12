@@ -1,9 +1,12 @@
 # Auto-updated by dev-config sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: eab3522
-synced_at: 2026-04-12T03:05:57Z
+commit: 36477e1
+synced_at: 2026-04-12T22:33:14Z
 pinned:
+  - .devcontainer/Dockerfile
   - .devcontainer/devcontainer.json
+  - .devcontainer/initialize.sh
+  - .markdownlint-cli2.yaml
   - .mise.toml
   - .mcp.json
   - .vscode/extensions.json
