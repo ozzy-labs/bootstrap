@@ -17,6 +17,7 @@
 
 ### セットアップスクリプト
 
+- `install.sh`: GitHub からのワンライナー実行とローカル実行の両方に対応するエントリーポイント
 - `scripts/setup-local-ubuntu.sh`: ローカル開発環境セットアップスクリプト（メイン）
 - `scripts/setup-zsh-ubuntu.sh`: Zsh環境セットアップスクリプト
 

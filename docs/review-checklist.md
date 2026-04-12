@@ -186,9 +186,9 @@
   - [ ] type が正しい（feat, fix, docs, style, refactor, test, chore等）
   - [ ] subject が簡潔で明確
   - [ ] body が適切（必要な場合）
-- [ ] ブランチが最新の develop から分岐している
+- [ ] ブランチが最新の main から分岐している
   - [ ] `git log --oneline` でブランチポイントを確認
-  - [ ] 必要に応じて `git rebase develop` で更新
+  - [ ] 必要に応じて `git rebase main` で更新
 - [ ] コンフリクトがない
   - [ ] `git status` で確認
   - [ ] マージ可能な状態

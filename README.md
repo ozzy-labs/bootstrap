@@ -30,6 +30,7 @@ A comprehensive collection of shell scripts to set up development tools on WSL2/
 
 ```
 wsl-dev-setup/
+├── install.sh
 ├── README.md
 ├── README.ja.md
 └── scripts/
@@ -52,29 +53,30 @@ wsl-dev-setup/
 ## 4. Quick Start
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ozzy-3/wsl-dev-setup.git
-cd wsl-dev-setup
+# 1. Set up zsh (recommended first)
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- zsh
 
-# 2. Set up zsh (recommended: run first)
-./scripts/setup-zsh-ubuntu.sh
-
-# 3. Restart your terminal
+# 2. Restart your terminal
 exit
 # Open a new terminal
 
-# 4. Set up development tools
-./scripts/setup-local-ubuntu.sh
+# 3. Set up development tools
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- local
 
-# 5. Restart your terminal again
-exit
-# Open a new terminal
-
-# 6. Complete required authentications
+# 4. Complete required authentications
 aws configure      # or: aws configure sso
 gh auth login
 claude auth login
 codex auth login
+```
+
+If you prefer to inspect the repository first:
+
+```bash
+git clone https://github.com/ozzy-labs/wsl-dev-setup.git
+cd wsl-dev-setup
+./install.sh zsh
+./install.sh local
 ```
 
 ## 5. Prerequisites
@@ -92,6 +94,8 @@ Dev Container environments are automatically built from `.devcontainer/` configu
 ### 6.1 setup-zsh-ubuntu.sh
 
 Sets up zsh + oh-my-zsh + plugins on WSL2/Ubuntu environment.
+
+You can run it either through `install.sh` or directly via `scripts/setup-zsh-ubuntu.sh`.
 
 **6.1.1 What Gets Installed**
 
@@ -123,14 +127,20 @@ Sets up zsh + oh-my-zsh + plugins on WSL2/Ubuntu environment.
 **6.1.3 Usage**
 
 ```bash
-# Basic execution
+# Via install.sh (recommended for first-time setup)
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- zsh
+
+# Basic execution from a cloned repository
+./install.sh zsh
+
+# Direct script execution
 ./scripts/setup-zsh-ubuntu.sh
 
 # With logging
-SETUP_LOG=1 ./scripts/setup-zsh-ubuntu.sh
+SETUP_LOG=1 ./install.sh zsh
 
 # Specify custom log file path
-SETUP_LOG=/path/to/setup.log ./scripts/setup-zsh-ubuntu.sh
+SETUP_LOG=/path/to/setup.log ./install.sh zsh
 
 # Restart shell (activates zsh)
 exec zsh
@@ -161,6 +171,8 @@ echo $plugins
 ### 6.2 setup-local-ubuntu.sh
 
 Comprehensive setup script that installs required development tools on WSL2/Ubuntu environment.
+
+You can run it either through `install.sh` or directly via `scripts/setup-local-ubuntu.sh`.
 
 **6.2.1 Installed Tools**
 
@@ -226,14 +238,20 @@ Comprehensive setup script that installs required development tools on WSL2/Ubun
 **6.2.3 Usage**
 
 ```bash
-# Basic execution
+# Via install.sh (recommended for first-time setup)
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- local
+
+# Basic execution from a cloned repository
+./install.sh local
+
+# Direct script execution
 ./scripts/setup-local-ubuntu.sh
 
 # With logging (default path: ~/setup-local-ubuntu-YYYYMMDD-HHMMSS.log)
-SETUP_LOG=1 ./scripts/setup-local-ubuntu.sh
+SETUP_LOG=1 ./install.sh local
 
 # Specify custom log file path
-SETUP_LOG=/var/log/setup.log ./scripts/setup-local-ubuntu.sh
+SETUP_LOG=/var/log/setup.log ./install.sh local
 
 # Completely close and re-login to terminal
 # (exec is not sufficient to ensure PATH is applied)
@@ -351,10 +369,10 @@ Setting the `SETUP_LOG` environment variable records all output to a log file:
 
 ```bash
 # Record to default path (~/setup-local-ubuntu-YYYYMMDD-HHMMSS.log)
-SETUP_LOG=1 ./scripts/setup-local-ubuntu.sh
+SETUP_LOG=1 ./install.sh local
 
 # Record to custom path
-SETUP_LOG=/tmp/setup.log ./scripts/setup-local-ubuntu.sh
+SETUP_LOG=/tmp/setup.log ./install.sh local
 ```
 
 Logs include:
@@ -459,7 +477,7 @@ Or configure later: git config --global user.email "you@example.com"
 
 ```bash
 # When executed with logging enabled
-SETUP_LOG=1 ./scripts/setup-local-ubuntu.sh
+SETUP_LOG=1 ./install.sh local
 
 # Log file path will be shown, e.g.:
 ℹ️  Logs stored at /home/user/setup-local-ubuntu-20250109-123456.log
