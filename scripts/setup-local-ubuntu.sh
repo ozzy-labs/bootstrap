@@ -539,7 +539,7 @@ install_ai_tools() {
       echo "  ✅ Claude Code インストール完了"
     else
       echo "  ℹ️  Claude Code を最新版に更新中..."
-      claude update >/dev/null 2>&1 || true
+      claude update </dev/null >/dev/null 2>&1 || true
       echo "  ⏭️  Claude Code は最新版です ($(claude --version 2>/dev/null || echo '不明'))"
     fi
   fi
@@ -575,7 +575,7 @@ install_ai_tools() {
       echo "  ✅ GitHub Copilot CLI インストール完了"
     else
       echo "  ℹ️  GitHub Copilot CLI を最新版に更新中..."
-      copilot update >/dev/null 2>&1 || true
+      copilot update </dev/null >/dev/null 2>&1 || true
       echo "  ⏭️  GitHub Copilot CLI は最新版です ($(copilot --version 2>/dev/null || echo '不明'))"
     fi
   fi
