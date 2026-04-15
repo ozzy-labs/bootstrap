@@ -570,13 +570,16 @@ install_ai_tools() {
       any_installed=1
     }
 
-    if ! command -v copilot &>/dev/null; then
+    # VS Code 拡張の shim（~/.vscode-server/...）はスタンドアロン CLI ではないため除外
+    local copilot_path
+    copilot_path=$(command -v copilot 2>/dev/null || true)
+    if [ -z "$copilot_path" ] || [[ "$copilot_path" == *".vscode-server"* ]]; then
       curl -fsSL https://gh.io/copilot-install | bash
       echo "  ✅ GitHub Copilot CLI インストール完了"
     else
       echo "  ℹ️  GitHub Copilot CLI を最新版に更新中..."
       timeout 10 copilot update </dev/null >/dev/null 2>&1 || true
-      echo "  ⏭️  GitHub Copilot CLI は最新版です ($(timeout 5 copilot --version 2>/dev/null || echo '不明'))"
+      echo "  ⏭️  GitHub Copilot CLI は最新版です ($(copilot --version 2>/dev/null || echo '不明'))"
     fi
   fi
 
@@ -1279,7 +1282,7 @@ echo ""
 echo "  🤖 AIツール:"
 echo "    Claude Code:        $(claude --version 2>/dev/null || echo '未インストール')"
 echo "    Codex CLI:          $(codex --version 2>/dev/null || echo '未インストール')"
-echo "    GitHub Copilot CLI: $(timeout 5 copilot --version 2>/dev/null || echo '未インストール')"
+echo "    GitHub Copilot CLI: $([[ "$(command -v copilot 2>/dev/null)" == *".vscode-server"* ]] && echo '未インストール' || copilot --version 2>/dev/null || echo '未インストール')"
 echo "    Gemini CLI:         $(gemini --version 2>/dev/null || echo '未インストール')"
 echo ""
 echo "  🛠️ 開発補助ツール:"
