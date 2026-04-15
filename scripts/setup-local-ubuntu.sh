@@ -539,7 +539,7 @@ install_ai_tools() {
       echo "  ✅ Claude Code インストール完了"
     else
       echo "  ℹ️  Claude Code を最新版に更新中..."
-      claude update </dev/null >/dev/null 2>&1 || true
+      timeout 10 claude update </dev/null >/dev/null 2>&1 || true
       echo "  ⏭️  Claude Code は最新版です ($(claude --version 2>/dev/null || echo '不明'))"
     fi
   fi
@@ -575,8 +575,8 @@ install_ai_tools() {
       echo "  ✅ GitHub Copilot CLI インストール完了"
     else
       echo "  ℹ️  GitHub Copilot CLI を最新版に更新中..."
-      copilot update </dev/null >/dev/null 2>&1 || true
-      echo "  ⏭️  GitHub Copilot CLI は最新版です ($(copilot --version 2>/dev/null || echo '不明'))"
+      timeout 10 copilot update </dev/null >/dev/null 2>&1 || true
+      echo "  ⏭️  GitHub Copilot CLI は最新版です ($(timeout 5 copilot --version 2>/dev/null || echo '不明'))"
     fi
   fi
 
@@ -1279,7 +1279,7 @@ echo ""
 echo "  🤖 AIツール:"
 echo "    Claude Code:        $(claude --version 2>/dev/null || echo '未インストール')"
 echo "    Codex CLI:          $(codex --version 2>/dev/null || echo '未インストール')"
-echo "    GitHub Copilot CLI: $(copilot --version 2>/dev/null || echo '未インストール')"
+echo "    GitHub Copilot CLI: $(timeout 5 copilot --version 2>/dev/null || echo '未インストール')"
 echo "    Gemini CLI:         $(gemini --version 2>/dev/null || echo '未インストール')"
 echo ""
 echo "  🛠️ 開発補助ツール:"
