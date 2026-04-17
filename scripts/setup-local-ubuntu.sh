@@ -33,7 +33,7 @@ INSTALL_GEMINI_CLI=1  # Gemini CLI
 INSTALL_AI_POWER_TOOLS=1 # markitdown, tesseract-ocr(+jpn), ffmpeg, ast-grep, yq
 
 # 開発補助ツール
-INSTALL_DEV_TOOLS=1 # just, zoxide
+INSTALL_DEV_TOOLS=1 # just, zoxide, shellcheck
 
 # ========================================
 # グローバル変数（実行時に設定される値）
@@ -678,6 +678,11 @@ install_dev_tools() {
     echo "  ⏭️  zoxide は最新版です"
   fi
 
+  # Shellcheck（シェル静的解析）を mise 経由で導入
+  # AI エージェントが書くシェルスクリプト / 本ツール自身のシェルスクリプトの品質担保に活用
+  ensure_mise_installed || return 1
+  mise_use_global "shellcheck@latest" "shellcheck"
+
   echo "✅ 開発補助ツールインストール完了"
 }
 
@@ -797,7 +802,7 @@ echo "  🐳 コンテナツール - Docker Engine, Docker Compose"
 echo "  ☁️ クラウドツール - AWS CLI, Azure CLI, Google Cloud CLI"
 echo "  🤖 AIエージェント CLI - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI"
 echo "  🧠 AIパワーツール - markitdown, tesseract-ocr, ffmpeg, ast-grep, yq"
-echo "  🛠️ 開発補助ツール - just, zoxide"
+echo "  🛠️ 開発補助ツール - just, zoxide, shellcheck"
 echo ""
 echo "すべてのツールをインストールしますか？"
 echo "  y: すべてインストール（デフォルト）"
@@ -886,7 +891,7 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
 
   # 開発補助ツール
   echo ""
-  read -p "🛠️ 開発補助ツール (just, zoxide) をインストールしますか? [Y/n]: " -n 1 -r
+  read -p "🛠️ 開発補助ツール (just, zoxide, shellcheck) をインストールしますか? [Y/n]: " -n 1 -r
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_DEV_TOOLS=0
 fi
@@ -1332,6 +1337,7 @@ echo ""
 echo "  🛠️ 開発補助ツール:"
 echo "    just:           $(just --version 2>/dev/null || echo '未インストール')"
 echo "    zoxide:         $(zoxide --version 2>/dev/null || echo '未インストール')"
+echo "    shellcheck:     $(shellcheck --version 2>/dev/null | awk '/^version:/{print $2}' || echo '未インストール')"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
