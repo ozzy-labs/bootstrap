@@ -31,7 +31,9 @@ Conventional Commits 1.0.0 に準拠する（commitlint で検証される）。
 
 ## メッセージ本文
 
-- 1 行目: `type[(scope)]: description`（英語で、50 文字以内目安）
+- 1 行目: `type[(scope)]: description`
+  - `type` / `scope` は英語（Conventional Commits 規約）
+  - `description` は**日本語**で、50 文字以内目安
 - 複数の論理的変更がある場合は body で補足
 
 ## 共通注意事項
