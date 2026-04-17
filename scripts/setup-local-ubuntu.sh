@@ -5,35 +5,36 @@ set -e
 # ========================================
 # グローバル変数（インストール対象フラグ）
 # ========================================
+# 環境変数で事前に設定されている場合はそれを尊重（CI / Docker でのオーバーライド用途）
 
 # 基本開発環境
-INSTALL_BUILD_TOOLS=1 # build-essential
-INSTALL_BASIC_CLI=1   # tree, fzf, jq, ripgrep, fd, unzip, wslu
-INSTALL_GIT_TOOLS=1   # Git, GitHub CLI, gitleaks
+INSTALL_BUILD_TOOLS="${INSTALL_BUILD_TOOLS:-1}" # build-essential
+INSTALL_BASIC_CLI="${INSTALL_BASIC_CLI:-1}"     # tree, fzf, jq, ripgrep, fd, unzip, wslu
+INSTALL_GIT_TOOLS="${INSTALL_GIT_TOOLS:-1}"     # Git, GitHub CLI, gitleaks
 
 # プログラミング言語環境（mise で統一管理）
-INSTALL_NODE=1   # mise + Node.js LTS + pnpm
-INSTALL_PYTHON=1 # mise + Python + uv
+INSTALL_NODE="${INSTALL_NODE:-1}"     # mise + Node.js LTS + pnpm
+INSTALL_PYTHON="${INSTALL_PYTHON:-1}" # mise + Python + uv
 
 # コンテナツール
-INSTALL_CONTAINER=1 # Docker, Docker Compose
+INSTALL_CONTAINER="${INSTALL_CONTAINER:-1}" # Docker, Docker Compose
 
 # クラウドツール（個別選択可能、Azure/GCP は opt-in）
-INSTALL_AWS_CLI=1    # AWS CLI (デフォルト ON)
-INSTALL_AZURE_CLI=0  # Azure CLI (opt-in)
-INSTALL_GCLOUD_CLI=0 # Google Cloud CLI (opt-in)
+INSTALL_AWS_CLI="${INSTALL_AWS_CLI:-1}"       # AWS CLI (デフォルト ON)
+INSTALL_AZURE_CLI="${INSTALL_AZURE_CLI:-0}"   # Azure CLI (opt-in)
+INSTALL_GCLOUD_CLI="${INSTALL_GCLOUD_CLI:-0}" # Google Cloud CLI (opt-in)
 
 # AIエージェント CLI（個別選択可能）
-INSTALL_CLAUDE_CODE=1 # Claude Code
-INSTALL_CODEX_CLI=1   # Codex CLI
-INSTALL_COPILOT_CLI=1 # GitHub Copilot CLI
-INSTALL_GEMINI_CLI=1  # Gemini CLI
+INSTALL_CLAUDE_CODE="${INSTALL_CLAUDE_CODE:-1}" # Claude Code
+INSTALL_CODEX_CLI="${INSTALL_CODEX_CLI:-1}"     # Codex CLI
+INSTALL_COPILOT_CLI="${INSTALL_COPILOT_CLI:-1}" # GitHub Copilot CLI
+INSTALL_GEMINI_CLI="${INSTALL_GEMINI_CLI:-1}"   # Gemini CLI
 
 # AIパワーツール（エージェントの文書読み込み・検索を強化）
-INSTALL_AI_POWER_TOOLS=1 # markitdown, tesseract-ocr(+jpn), ffmpeg, ast-grep, yq
+INSTALL_AI_POWER_TOOLS="${INSTALL_AI_POWER_TOOLS:-1}" # markitdown, tesseract-ocr(+jpn), ffmpeg, ast-grep, yq
 
 # 開発補助ツール
-INSTALL_DEV_TOOLS=1 # just, zoxide, shellcheck
+INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}" # just, zoxide, shellcheck
 
 # ========================================
 # グローバル変数（実行時に設定される値）
@@ -52,20 +53,34 @@ _is_non_interactive() {
   [ "${WSL_DEV_SETUP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
 }
 
-# 直前の `read -p "... [Y/n]"` に対して非対話時の既定値 Y を適用
-_apply_non_interactive_yes() {
+# [Y/n] プロンプト（既定 Y）を処理し、REPLY に結果を設定する
+# 非対話時は read をスキップして REPLY=Y を即設定
+# $1: プロンプト文字列
+_prompt_default_yes() {
+  local prompt="$1"
   if _is_non_interactive; then
     REPLY=Y
-    echo "Y (non-interactive)"
+    printf '%sY (non-interactive)\n' "$prompt"
+    return 0
   fi
+  REPLY=""
+  read -p "$prompt" -n 1 -r || true
+  echo ""
 }
 
-# 直前の `read -p "... [y/N]"` に対して非対話時の既定値 N を適用
-_apply_non_interactive_no() {
+# [y/N] プロンプト（既定 N）を処理し、REPLY に結果を設定する
+# 非対話時は read をスキップして REPLY=N を即設定
+# $1: プロンプト文字列
+_prompt_default_no() {
+  local prompt="$1"
   if _is_non_interactive; then
     REPLY=N
-    echo "N (non-interactive)"
+    printf '%sN (non-interactive)\n' "$prompt"
+    return 0
   fi
+  REPLY=""
+  read -p "$prompt" -n 1 -r || true
+  echo ""
 }
 
 # シェル設定ファイルに行を追加する関数
@@ -322,9 +337,12 @@ ensure_mise_installed() {
   export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
 
   # シェル統合（mise activate）を設定
-  add_to_shell_config ~/.zshrc 'mise activate zsh' '# mise（バージョン管理）
+  # 注意: パターンは書き込まれた文字列内に実在する部分列を使う必要がある。
+  # eval 行には `" activate zsh)"` のように途中に `"` が入るため、
+  # コメント行の固定文字列（"# mise（バージョン管理）"）をアンカーとして利用する。
+  add_to_shell_config ~/.zshrc '# mise（バージョン管理）' '# mise（バージョン管理）
 eval "$("$HOME/.local/bin/mise" activate zsh)"' "~/.zshrc に mise 初期化を追加しました"
-  add_to_shell_config ~/.bashrc 'mise activate bash' '# mise（バージョン管理）
+  add_to_shell_config ~/.bashrc '# mise（バージョン管理）' '# mise（バージョン管理）
 eval "$("$HOME/.local/bin/mise" activate bash)"' "~/.bashrc に mise 初期化を追加しました"
 
   _MISE_INITIALIZED=1
@@ -672,38 +690,17 @@ install_dev_tools() {
   echo ""
   echo "🛠️ 開発補助ツールをインストール中..."
 
-  # just のインストール・アップデート
-  if ! command -v just &>/dev/null; then
-    curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
-    echo "  ✅ just インストール完了"
-  else
-    echo "  ℹ️  just を最新版に更新中..."
-    curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin --force >/dev/null 2>&1
-    echo "  ⏭️  just は最新版です"
-  fi
-
-  # zoxide のインストール・アップデート
-  if ! command -v zoxide &>/dev/null; then
-    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
-    echo "  ✅ zoxide インストール完了"
-
-    # PATH を更新して zoxide を使えるようにする（インストール直後に必要）
-    # zoxide は ~/.local/bin にインストールされる
-    export PATH="$HOME/.local/bin:$PATH"
-
-    # zoxide の初期化を .bashrc と .zshrc に追加
-    add_to_shell_config ~/.bashrc "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
-    add_to_shell_config ~/.zshrc "zoxide init zsh" 'eval "$(zoxide init zsh)"' "~/.zshrc に zoxide 初期化を追加しました"
-  else
-    echo "  ℹ️  zoxide を最新版に更新中..."
-    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh >/dev/null 2>&1
-    echo "  ⏭️  zoxide は最新版です"
-  fi
-
-  # Shellcheck（シェル静的解析）を mise 経由で導入
-  # AI エージェントが書くシェルスクリプト / 本ツール自身のシェルスクリプトの品質担保に活用
   ensure_mise_installed || return 1
+
+  # just / zoxide / shellcheck をすべて mise 経由で導入
+  # （公式インストーラは GitHub API レートリミットで詰まりやすいため mise に統一）
+  mise_use_global "just@latest" "just"
+  mise_use_global "zoxide@latest" "zoxide"
   mise_use_global "shellcheck@latest" "shellcheck"
+
+  # zoxide のシェル初期化を追加（初回のみ）
+  add_to_shell_config ~/.bashrc "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
+  add_to_shell_config ~/.zshrc "zoxide init zsh" 'eval "$(zoxide init zsh)"' "~/.zshrc に zoxide 初期化を追加しました"
 
   echo "✅ 開発補助ツールインストール完了"
 }
@@ -793,8 +790,7 @@ fi
 if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
   echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション用です"
   echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
-  read -p "続行しますか？ (y/N): " -n 1 -r
-  _apply_non_interactive_no
+  _prompt_default_no "続行しますか？ (y/N): "
   echo
   echo "ℹ️  ユーザー入力: $REPLY" # ログに記録
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -831,12 +827,14 @@ echo "すべてのツールをインストールしますか？"
 echo "  y: すべてインストール（デフォルト）"
 echo "  n: 個別に選択"
 echo ""
-read -p "選択 [Y/n]: " -n 1 -r INSTALL_ALL
 if _is_non_interactive; then
   INSTALL_ALL=Y
-  echo "Y (non-interactive)"
+  echo "選択 [Y/n]: Y (non-interactive)"
+else
+  INSTALL_ALL=""
+  read -p "選択 [Y/n]: " -n 1 -r INSTALL_ALL || true
+  echo ""
 fi
-echo ""
 echo "ℹ️  ユーザー入力: ${INSTALL_ALL:-Y}"
 
 if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
@@ -847,93 +845,78 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
   echo ""
 
   # 基本CLIツール
-  read -p "📌 基本CLIツール (tree, fzf, jq, ripgrep, fd) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "📌 基本CLIツール (tree, fzf, jq, ripgrep, fd) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BASIC_CLI=0
 
   # ビルドツール
-  read -p "🔧 ビルドツール (build-essential) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🔧 ビルドツール (build-essential) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BUILD_TOOLS=0
 
   # Git関連ツール
-  read -p "🔧 Git関連ツール (Git, GitHub CLI, gitleaks) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🔧 Git関連ツール (Git, GitHub CLI, gitleaks) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GIT_TOOLS=0
 
   # Node.js環境
-  read -p "📦 Node.js環境 (mise, Node.js, pnpm) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "📦 Node.js環境 (mise, Node.js, pnpm) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_NODE=0
 
   # Python環境
-  read -p "🐍 Python環境 (mise, Python, uv) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🐍 Python環境 (mise, Python, uv) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_PYTHON=0
 
   # コンテナツール
-  read -p "🐳 コンテナツール (Docker, Docker Compose) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🐳 コンテナツール (Docker, Docker Compose) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CONTAINER=0
 
   # クラウドツール（個別。AWS はデフォルト ON、Azure/GCP は opt-in）
   echo ""
   echo "☁️ クラウドツール:"
-  read -p "  AWS CLI をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "  AWS CLI をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AWS_CLI=0
 
-  read -p "  Azure CLI をインストールしますか? [y/N]: " -n 1 -r
-  _apply_non_interactive_no
+  _prompt_default_no "  Azure CLI をインストールしますか? [y/N]: "
   echo ""
   [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_AZURE_CLI=1
 
-  read -p "  Google Cloud CLI をインストールしますか? [y/N]: " -n 1 -r
-  _apply_non_interactive_no
+  _prompt_default_no "  Google Cloud CLI をインストールしますか? [y/N]: "
   echo ""
   [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_GCLOUD_CLI=1
 
   # AIエージェント CLI（個別）
   echo ""
   echo "🤖 AIエージェント CLI:"
-  read -p "  Claude Code をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "  Claude Code をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CLAUDE_CODE=0
 
-  read -p "  Codex CLI をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "  Codex CLI をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CODEX_CLI=0
 
-  read -p "  GitHub Copilot CLI をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "  GitHub Copilot CLI をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_COPILOT_CLI=0
 
-  read -p "  Gemini CLI をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "  Gemini CLI をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GEMINI_CLI=0
 
   # AIパワーツール
   echo ""
-  read -p "🧠 AIパワーツール (markitdown, tesseract-ocr, ffmpeg, ast-grep, yq) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🧠 AIパワーツール (markitdown, tesseract-ocr, ffmpeg, ast-grep, yq) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AI_POWER_TOOLS=0
 
   # 開発補助ツール
   echo ""
-  read -p "🛠️ 開発補助ツール (just, zoxide, shellcheck) をインストールしますか? [Y/n]: " -n 1 -r
-  _apply_non_interactive_yes
+  _prompt_default_yes "🛠️ 開発補助ツール (just, zoxide, shellcheck) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_DEV_TOOLS=0
 fi

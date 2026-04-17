@@ -31,7 +31,17 @@ Behavior:
 
 # L2: BATS unit tests
 mise exec -- bats tests/unit/
+
+# L3: Docker integration tests (~5-10 min per version)
+./tests/integration/run.sh                 # default: ubuntu:24.04
+./tests/integration/run.sh 22.04 24.04     # multiple versions
+./tests/integration/run.sh devel           # canary (next Ubuntu)
 ```
+
+`tests/integration/run.sh` picks up `GITHUB_TOKEN` from either your environment
+or `gh auth token` (if `gh` is installed). Forwarding it to the container raises
+mise's GitHub API rate limit from 60 to 5000 requests/hour, which matters when
+running the full suite multiple times in short succession.
 
 ## License
 
