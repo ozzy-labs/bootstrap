@@ -46,6 +46,28 @@ MISE_BIN="$HOME/.local/bin/mise"
 # ユーティリティ関数
 # ========================================
 
+# 非対話モードかどうかを判定
+# WSL_DEV_SETUP_ASSUME_YES=1 or CI=true でプロンプトを自動回答する
+_is_non_interactive() {
+  [ "${WSL_DEV_SETUP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
+}
+
+# 直前の `read -p "... [Y/n]"` に対して非対話時の既定値 Y を適用
+_apply_non_interactive_yes() {
+  if _is_non_interactive; then
+    REPLY=Y
+    echo "Y (non-interactive)"
+  fi
+}
+
+# 直前の `read -p "... [y/N]"` に対して非対話時の既定値 N を適用
+_apply_non_interactive_no() {
+  if _is_non_interactive; then
+    REPLY=N
+    echo "N (non-interactive)"
+  fi
+}
+
 # シェル設定ファイルに行を追加する関数
 add_to_shell_config() {
   local file="$1"
@@ -772,6 +794,7 @@ if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
   echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション用です"
   echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
   read -p "続行しますか？ (y/N): " -n 1 -r
+  _apply_non_interactive_no
   echo
   echo "ℹ️  ユーザー入力: $REPLY" # ログに記録
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -809,6 +832,10 @@ echo "  y: すべてインストール（デフォルト）"
 echo "  n: 個別に選択"
 echo ""
 read -p "選択 [Y/n]: " -n 1 -r INSTALL_ALL
+if _is_non_interactive; then
+  INSTALL_ALL=Y
+  echo "Y (non-interactive)"
+fi
 echo ""
 echo "ℹ️  ユーザー入力: ${INSTALL_ALL:-Y}"
 
@@ -821,31 +848,37 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
 
   # 基本CLIツール
   read -p "📌 基本CLIツール (tree, fzf, jq, ripgrep, fd) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BASIC_CLI=0
 
   # ビルドツール
   read -p "🔧 ビルドツール (build-essential) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_BUILD_TOOLS=0
 
   # Git関連ツール
   read -p "🔧 Git関連ツール (Git, GitHub CLI, gitleaks) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GIT_TOOLS=0
 
   # Node.js環境
   read -p "📦 Node.js環境 (mise, Node.js, pnpm) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_NODE=0
 
   # Python環境
   read -p "🐍 Python環境 (mise, Python, uv) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_PYTHON=0
 
   # コンテナツール
   read -p "🐳 コンテナツール (Docker, Docker Compose) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CONTAINER=0
 
@@ -853,14 +886,17 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
   echo ""
   echo "☁️ クラウドツール:"
   read -p "  AWS CLI をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AWS_CLI=0
 
   read -p "  Azure CLI をインストールしますか? [y/N]: " -n 1 -r
+  _apply_non_interactive_no
   echo ""
   [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_AZURE_CLI=1
 
   read -p "  Google Cloud CLI をインストールしますか? [y/N]: " -n 1 -r
+  _apply_non_interactive_no
   echo ""
   [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_GCLOUD_CLI=1
 
@@ -868,30 +904,36 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
   echo ""
   echo "🤖 AIエージェント CLI:"
   read -p "  Claude Code をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CLAUDE_CODE=0
 
   read -p "  Codex CLI をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CODEX_CLI=0
 
   read -p "  GitHub Copilot CLI をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_COPILOT_CLI=0
 
   read -p "  Gemini CLI をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GEMINI_CLI=0
 
   # AIパワーツール
   echo ""
   read -p "🧠 AIパワーツール (markitdown, tesseract-ocr, ffmpeg, ast-grep, yq) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AI_POWER_TOOLS=0
 
   # 開発補助ツール
   echo ""
   read -p "🛠️ 開発補助ツール (just, zoxide, shellcheck) をインストールしますか? [Y/n]: " -n 1 -r
+  _apply_non_interactive_yes
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_DEV_TOOLS=0
 fi
