@@ -248,11 +248,36 @@ install_basic_cli_tools() {
   fi
 
   # wslu のインストール（WSL2 でブラウザを開くために必要）
+  # Ubuntu 22.04 / 24.04 は main リポジトリに含まれるが、26.04 以降は未収録の
+  # 場合があるため PPA フォールバックを用意し、いずれも失敗した場合は警告の上で
+  # セットアップ全体を中断しない（wslview なしでもホスト開発自体は機能するため）。
+  install_wslu() {
+    if sudo apt-get install -y wslu 2>/dev/null; then
+      echo "  ✅ wslu インストール完了（apt）"
+      return 0
+    fi
+    echo "  ℹ️  wslu が標準リポジトリに無いため PPA（ppa:wslutilities/wslu）を試行..."
+    if sudo add-apt-repository -y ppa:wslutilities/wslu >/dev/null 2>&1; then
+      if sudo apt-get update -qq 2>/dev/null && sudo apt-get install -y wslu 2>/dev/null; then
+        echo "  ✅ wslu インストール完了（PPA）"
+        return 0
+      fi
+      # PPA 追加には成功したが install で失敗した場合、Release ファイル欠落等で
+      # 以降の apt-get update を汚染するため PPA sources を確実に削除する
+      sudo rm -f /etc/apt/sources.list.d/wslutilities-ubuntu-wslu-*.list \
+        /etc/apt/sources.list.d/wslutilities-ubuntu-wslu-*.sources 2>/dev/null || true
+      sudo apt-get update -qq >/dev/null 2>&1 || true
+    fi
+    echo "  ⚠️  wslu のインストールに失敗しました（Ubuntu バージョン未対応の可能性）"
+    echo "  ℹ️  影響: wslview コマンドが使えないため WSL2 から Windows ブラウザの自動起動はできません"
+    echo "  ℹ️  手動インストール: https://github.com/wslutilities/wslu#installation"
+    return 0
+  }
+
   if ! command -v wslview &>/dev/null; then
-    sudo apt-get install -y wslu
-    echo "  ✅ wslu インストール完了"
+    install_wslu
   else
-    sudo apt-get install -y --only-upgrade wslu >/dev/null 2>&1
+    sudo apt-get install -y --only-upgrade wslu >/dev/null 2>&1 || true
     echo "  ⏭️  wslu は最新版です"
   fi
 
