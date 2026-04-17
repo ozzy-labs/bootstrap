@@ -306,8 +306,9 @@ install_mise_and_languages() {
     echo "  ⏭️  mise は最新版です ($("$MISE_BIN" --version 2>/dev/null | head -n1 | awk '{print $1}'))"
   fi
 
-  # 以降のコマンドで mise を即座に使えるようにする
-  export PATH="$HOME/.local/bin:$PATH"
+  # 以降のコマンドで mise とそのシム（node, npm, python 等）を使えるようにする
+  # AIツールセクションで npm 経由のグローバルインストールが走るため必須
+  export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
 
   # シェル統合（mise activate）を設定
   add_to_shell_config ~/.zshrc 'mise activate zsh' '# mise（バージョン管理）
@@ -565,6 +566,12 @@ install_ai_tools() {
       npm update -g @google/gemini-cli >/dev/null 2>&1 || true
       echo "  ⏭️  Gemini CLI は最新版です"
     fi
+  fi
+
+  # mise 管理下の node で npm グローバルインストールした CLI のシムを生成
+  # （Codex / Gemini 等の新規バイナリを ~/.local/share/mise/shims 経由で使えるようにする）
+  if [ "$any_installed" = "1" ] && [ -x "$MISE_BIN" ]; then
+    "$MISE_BIN" reshim >/dev/null 2>&1 || true
   fi
 
   [ "$any_installed" = "1" ] && echo "✅ AIツールインストール完了"
