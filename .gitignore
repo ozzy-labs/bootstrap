@@ -20,3 +20,7 @@ build/
 
 # Logs
 *.log
+
+# Claude Code ランタイム成果物（ScheduleWakeup などが生成するロック等）
+.claude/scheduled_tasks.lock
+.claude/*.lock
