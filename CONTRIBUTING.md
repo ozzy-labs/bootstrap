@@ -1,91 +1,91 @@
 # Contributing
 
-This is a personal project maintained by [ozzy-labs](https://github.com/ozzy-labs). External contributions are not currently accepted.
+本プロジェクトは [ozzy-labs](https://github.com/ozzy-labs) が個人で運用しており、外部コントリビューションは受け付けていません。バグ報告や機能要望は Issue で歓迎します。
 
-## Bug Reports & Feature Requests
+## 言語ポリシー
 
-If you find a bug or have an idea for improvement, please open an issue.
+- 外部ユーザー向けドキュメント（`README.md` / `CHANGELOG.md`）は英語・日本語の両方を用意
+- 内部成果物（コミット description / PR / Issue / コードコメント / CI 設定など）は**日本語**
+- 形式規約（Conventional Commits の `<type>:` プレフィックス、ブランチ名の `<type>/<slug>` 構造）は英語
+- 詳細は [`.claude/rules/git-workflow.md`](./.claude/rules/git-workflow.md) を参照
 
-## Testing
+## テスト
 
-### Non-interactive mode
+### 非対話モード
 
-Set either environment variable to skip interactive prompts (useful in CI / Docker):
+CI / Docker で対話プロンプトをスキップする際は、以下のいずれかを設定します：
 
 ```bash
-WSL_DEV_SETUP_ASSUME_YES=1 ./install.sh local    # explicit opt-in
-CI=true ./install.sh local                        # auto-enabled in most CI systems
+WSL_DEV_SETUP_ASSUME_YES=1 ./install.sh local    # 明示的 opt-in
+CI=true ./install.sh local                        # ほとんどの CI で自動設定される標準変数
 ```
 
-Behavior:
+挙動：
 
-- `[Y/n]` prompts → auto `Y` (install)
-- `[y/N]` prompts (Azure CLI / Google Cloud CLI / non-Ubuntu confirmation) → auto `N` (skip / abort)
-- Git username/email: pre-configure via `git config --global user.{name,email}` beforehand to land on the "already configured" code path
+- `[Y/n]` プロンプト → 自動 `Y`（インストール）
+- `[y/N]` プロンプト（Azure CLI / Google Cloud CLI / 非 Ubuntu 確認）→ 自動 `N`（スキップ / 中止）
+- Git ユーザー名 / メール: 事前に `git config --global user.{name,email}` で設定しておけば既存の「設定済み」パスに乗る
 
-### Local test execution
+### ローカルでのテスト実行
 
 ```bash
-# L0: Smoke tests (~500ms, no network)
+# L0: Smoke tests（約 500ms、ネットワーク不要）
 ./tests/smoke/run.sh
 
-# L2: BATS unit tests
+# L2: BATS ユニットテスト
 mise exec -- bats tests/unit/
 
-# L3: Docker integration tests (~5-10 min per version)
-./tests/integration/run.sh                 # default: ubuntu:24.04
-./tests/integration/run.sh 22.04 24.04     # multiple versions
-./tests/integration/run.sh devel           # canary (next Ubuntu)
+# L3: Docker 統合テスト（バージョン毎に約 5-10 分）
+./tests/integration/run.sh                 # デフォルト: ubuntu:24.04
+./tests/integration/run.sh 22.04 24.04     # 複数バージョン
+./tests/integration/run.sh devel           # Canary（次期 Ubuntu）
 ```
 
-`tests/integration/run.sh` picks up `GITHUB_TOKEN` from either your environment
-or `gh auth token` (if `gh` is installed). Forwarding it to the container raises
-mise's GitHub API rate limit from 60 to 5000 requests/hour, which matters when
-running the full suite multiple times in short succession.
+`tests/integration/run.sh` は `GITHUB_TOKEN`（環境変数 or `gh auth token`）を自動検出してコンテナに渡します。これにより mise の GitHub API レートリミットが 60 req/hr → 5000 req/hr に拡大し、短時間で繰り返しテストしても詰まらなくなります。
 
-### CI (GitHub Actions)
+### CI（GitHub Actions）
 
-| Workflow | Trigger | What it does |
+| ワークフロー | トリガー | 内容 |
 |---|---|---|
 | `lint.yaml` | PR + main push | shellcheck / shfmt / markdownlint / yamllint / gitleaks |
-| `test-smoke.yaml` | PR + main push | Runs `tests/smoke/run.sh` (no Docker) |
-| `test-unit.yaml` | PR + main push | Runs BATS suite via `mise` |
-| `test-integration.yaml` | main push, manual, or PR labeled `ci:integration` | Runs `tests/integration/run.sh` against 22.04 + 24.04 in matrix |
-| `canary.yaml` | Weekly (Mon 03:00 UTC) + manual | Runs the integration harness against `ubuntu:devel` / `ubuntu:rolling`; opens an issue on failure |
+| `test-smoke.yaml` | PR + main push | `tests/smoke/run.sh` を実行（Docker 不要） |
+| `test-unit.yaml` | PR + main push | `mise` 経由で BATS スイートを実行 |
+| `test-integration.yaml` | main push / 手動 / `ci:integration` ラベル付き PR | 22.04 + 24.04 matrix で `tests/integration/run.sh` を実行 |
+| `canary.yaml` | 週次（月曜 03:00 UTC）+ 手動 | `ubuntu:devel` / `ubuntu:rolling` で統合 harness を実行し、失敗時に Issue 自動起票 |
 
-Integration tests are opt-in for PRs (~5 min/version) to keep feedback fast on code-only changes. Add the `ci:integration` label when changing `scripts/setup-local-ubuntu.sh` or `tests/integration/`.
+統合テストは PR では opt-in（1 バージョン約 5 分）で、コード変更のみの PR のフィードバックを高速に保ちます。`scripts/setup-local-ubuntu.sh` や `tests/integration/` を変更する PR では `ci:integration` ラベルを付与してください。
 
-### Canary triage
+### Canary トリアージ
 
-When the Canary workflow fails it auto-creates an issue tagged `canary` + `investigation-needed`. The issue body contains the run URL and a triage checklist:
+Canary ワークフローが失敗すると、`canary` + `investigation-needed` ラベル付きの Issue が自動起票されます。Issue 本文には run URL とトリアージチェックリストが含まれます：
 
-1. **apt package renamed / removed** — next Ubuntu may have dropped or renamed a package (e.g. `tesseract-ocr-jpn`)
-2. **PPA no longer supports this Ubuntu version** — `ppa:git-core/ppa` for instance is added conditionally
-3. **Upstream tool breaking change** — mise / gitleaks / ast-grep etc. may have bumped major
-4. **Installer script behavior change** — `mise.run` / `astral.sh/uv` etc. may have changed flags
-5. **Transient network issue** — re-run `gh workflow run canary.yaml`; if it passes, close as "transient"
+1. **apt パッケージ名の変更・削除** — 次期 Ubuntu でパッケージが rename / 廃止された可能性（例: `tesseract-ocr-jpn`）
+2. **PPA が新 Ubuntu 未対応** — `ppa:git-core/ppa` など
+3. **上流ツールの破壊的変更** — mise / gitleaks / ast-grep 等のメジャーバンプ
+4. **インストーラ仕様変更** — `mise.run` / `astral.sh/uv` 等の flag 変更
+5. **一時的なネットワーク問題** — `gh workflow run canary.yaml` で再実行して緑なら "transient" として close
 
-Canary failures are non-blocking by design: they surface upstream change early so we can fix it before the next Ubuntu release lands.
+Canary 失敗はメインラインをブロックしません。次期 LTS リリース前に上流変更を検知し、事前対応の時間を確保するための仕組みです。
 
-### WSL2 pre-release smoke checklist
+### WSL2 実機スモークチェックリスト（リリース前）
 
-Docker covers Ubuntu userspace but cannot reproduce WSL2 specifics (systemd, `wslu`, Windows interop). Before cutting a release, verify on a fresh WSL2/Ubuntu environment:
+Docker は Ubuntu userspace を再現しますが、WSL2 固有要素（systemd / `wslu` / Windows interop）までは再現できません。リリース前に実機の WSL2/Ubuntu で以下を確認してください：
 
-- [ ] `install.sh zsh` completes; a new terminal has `echo $SHELL` pointing at zsh
-- [ ] `install.sh local` completes; `mise --version` / `node --version` / `pnpm --version` / `python3 --version` / `uv --version` / `gitleaks version` all work
-- [ ] `install.sh update` completes without error on an already-installed system
-- [ ] `wslview https://example.com` opens the Windows default browser
-- [ ] `sudo service docker start` succeeds, `docker run --rm hello-world` prints the welcome message
-- [ ] `echo $LANG` returns `ja_JP.UTF-8`; `date` prints JST
-- [ ] `git config --global user.name` / `user.email` are set as expected
-- [ ] AI CLI auth flows (`claude auth login`, `codex auth login`, `copilot`, `gemini`) start correctly
+- [ ] `install.sh zsh` が完走し、新しいターミナルで `echo $SHELL` が zsh を指す
+- [ ] `install.sh local` が完走し、`mise --version` / `node --version` / `pnpm --version` / `python3 --version` / `uv --version` / `gitleaks version` が動作する
+- [ ] 既存セットアップ済み環境で `install.sh update` がエラーなく完了する
+- [ ] `wslview https://example.com` で Windows 既定ブラウザが開く
+- [ ] `sudo service docker start` が成功し、`docker run --rm hello-world` が動作する
+- [ ] `echo $LANG` が `ja_JP.UTF-8`、`date` が JST 表示
+- [ ] `git config --global user.name` / `user.email` が意図通り設定されている
+- [ ] AI CLI 認証フロー（`claude auth login` / `codex auth login` / `copilot` / `gemini`）が正しく起動する
 
-### Suggested branch protection (repo owners)
+### ブランチ保護の推奨設定（repo owner 向け）
 
-- Require PR review before merge into `main`
-- Require the following status checks: `lint`, `test-smoke`, `test-unit`
-- Leave `test-integration` optional; gate it via the `ci:integration` label or trust main-push runs
+- `main` への直接 push 禁止
+- 必須ステータスチェック: `lint` / `test-smoke` / `test-unit`
+- `test-integration` は任意（`ci:integration` ラベル付き PR または main push で自動実行）
 
-## License
+## ライセンス
 
-By interacting with this project, you agree that any contributions you make will be licensed under the [MIT License](LICENSE).
+本プロジェクトへの関与により、提供されるコントリビューションは [MIT License](LICENSE) で配布されることに同意するものとします。
