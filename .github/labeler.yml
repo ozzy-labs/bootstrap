@@ -1,0 +1,13 @@
+# actions/labeler の設定ファイル。
+# 変更されたファイルに応じて PR にラベルを自動付与する。
+# ドキュメント: https://github.com/actions/labeler
+
+"ci:integration":
+  - changed-files:
+      - any-glob-to-any-file:
+          - install.sh
+          - scripts/setup-local-ubuntu.sh
+          - tests/integration/**
+          - tests/smoke/**
+          - .github/workflows/test-integration.yaml
+          - .github/workflows/canary.yaml

@@ -59,9 +59,10 @@ mise exec -- bats tests/unit/
 | `test-smoke.yaml` | PR + main push | `tests/smoke/run.sh` を実行（Docker 不要） |
 | `test-unit.yaml` | PR + main push | `mise` 経由で BATS スイートを実行 |
 | `test-integration.yaml` | main push / 手動 / `ci:integration` ラベル付き PR | 22.04 + 24.04 matrix で `tests/integration/run.sh` を実行 |
-| `canary.yaml` | 週次（月曜 03:00 UTC）+ 手動 | `ubuntu:devel` / `ubuntu:rolling` で統合 harness を実行し、失敗時に Issue 自動起票 |
+| `canary.yaml` | 週次（月曜 03:00 UTC）+ 手動 | `ubuntu:devel` / `ubuntu:rolling` で統合 harness を実行し、失敗時に Issue 自動起票／既存 Open Issue があればコメントで再発を記録 |
+| `labeler.yaml` | PR (opened/synchronize/reopened) | `install.sh` / `scripts/setup-local-ubuntu.sh` / `tests/integration/**` / `tests/smoke/**` / 主要 CI を変更した PR に `ci:integration` ラベルを自動付与 |
 
-統合テストは PR では opt-in（1 バージョン約 5 分）で、コード変更のみの PR のフィードバックを高速に保ちます。`scripts/setup-local-ubuntu.sh` や `tests/integration/` を変更する PR では `ci:integration` ラベルを付与してください。
+統合テストは PR では opt-in（1 バージョン約 5 分）で、コード変更のみの PR のフィードバックを高速に保ちます。統合テストが必要な範囲を変更する PR には `labeler.yaml` が自動で `ci:integration` ラベルを付与するため、通常は手動付与不要です。自動判定外のケースで必要な場合は手動付与も可能です。
 
 ### Canary トリアージ
 

@@ -80,10 +80,32 @@ jobs:
               `Non-blocking: Canary failures do not gate main-line PRs.`,
             ].join("\n");
 
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title,
-              body,
-              labels: ["canary", "investigation-needed"],
-            });
+            // 同じ (tag, date) の Open Issue が既にあれば新規起票せずコメントで再発を記録
+            const existing = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner,
+                repo,
+                state: "open",
+                labels: "canary",
+                per_page: 100,
+              },
+            );
+            const duplicate = existing.find((issue) => issue.title === title);
+
+            if (duplicate) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: duplicate.number,
+                body: `同じ組み合わせで再発しました。\n\n**Run:** ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+                labels: ["canary", "investigation-needed"],
+              });
+            }
