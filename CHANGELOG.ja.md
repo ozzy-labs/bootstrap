@@ -7,6 +7,39 @@
 
 ## [Unreleased]
 
+### 変更
+
+- **ミッション**: 「Dev Container 前提のホストセットアップ」から「**AI エージェント駆動開発を一発構築する（Dev Container / 直接開発の両対応）**」へ拡張（#13）
+- **Volta → mise に置換**: Node.js LTS / pnpm / Python / uv を mise 配下で統一管理（#14）
+- **git-secrets → gitleaks に置換**: mise 経由で導入、2026 デファクトのシークレットスキャナへ移行。グローバル Git フック設定は削除し、プロジェクト側の lefthook 等で運用する方針（#15）
+- **Azure CLI / Google Cloud CLI を opt-in に降格**: AWS CLI のみデフォルト ON を維持（#18）
+- `install.sh` を `.editorconfig`（2-space indent）に合わせて整形、`update` サブコマンドを追加
+
+### 追加
+
+- **AI パワーツール** カテゴリを新設してエージェントの能力を強化（#16）
+  - `markitdown[all]`（uv tool）- PDF / Office / 画像 / 音声 → Markdown
+  - `tesseract-ocr` + `tesseract-ocr-jpn`（apt）- OCR 基盤
+  - `ffmpeg`（apt）- 音声・動画処理基盤
+  - `ast-grep`（mise）- 構造的コード検索
+  - `yq`（mise）- YAML クエリ
+- `shellcheck` を開発補助ツールカテゴリに追加（mise 経由、#17）
+- `scripts/update-tools.sh` を新設し、mise / uv tool / npm / 独自インストーラを横断的に一括更新（`--dry-run` / `SETUP_LOG` 対応、#19）
+- `install.sh update` サブコマンド（上記スクリプトを呼び出す、#19）
+- `ensure_mise_installed` ヘルパー関数を追加（mise ベースのインストール関数で共通利用）
+
+### 削除
+
+- Volta 本体とその PATH / 環境変数設定
+- git-secrets のインストール処理と AWS パターン登録
+- apt 経由の Python インストール（mise 管理に統合）
+
+### ドキュメント
+
+- README.md / README.ja.md を AI ファースト・両モード対応を前提に再構成、新ツールと `update-tools.sh` を追記、動作確認コマンドを最新化
+
+## [0.1.0]
+
 ### 追加
 
 - Zsh環境セットアップスクリプト（`setup-zsh-ubuntu.sh`）

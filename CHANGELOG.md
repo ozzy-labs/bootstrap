@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Mission**: expanded from Dev-Container-only host setup to an AI-agent-driven development environment that supports both Dev Container and direct-host workflows (#13).
+- Replaced **Volta** with **mise** as the unified runtime / CLI version manager (#14). Node.js LTS, pnpm, Python, and uv are now managed through `mise use --global`.
+- Replaced **git-secrets** with **gitleaks** (installed via mise) as the modern, actively maintained secret scanner. Global git hook installation was removed; gitleaks is intended to be wired into project-level hooks (e.g. lefthook) (#15).
+- **Azure CLI** and **Google Cloud CLI** demoted from default-on to **opt-in**; AWS CLI remains default-on (#18).
+- `install.sh` reformatted to match `.editorconfig` (2-space indent) and gained an `update` subcommand.
+
+### Added
+
+- **AI power tools** category to boost AI agent capabilities (#16):
+  - `markitdown[all]` via `uv tool` (PDF / Office / image / audio → Markdown)
+  - `tesseract-ocr` + `tesseract-ocr-jpn` via apt (OCR backend)
+  - `ffmpeg` via apt (audio/video backend)
+  - `ast-grep` via mise (structural code search)
+  - `yq` via mise (YAML query)
+- `shellcheck` added to the dev helper tools category via mise (#17).
+- `scripts/update-tools.sh` to batch-update every tool across mise / uv tool / npm / native installer backends. Supports `--dry-run` and `SETUP_LOG` (#19).
+- `install.sh update` subcommand that delegates to the new update script (#19).
+- `ensure_mise_installed` helper function reused across mise-managed install flows.
+
+### Removed
+
+- Volta and all related PATH / env-variable setup.
+- git-secrets installation and AWS pattern registration.
+- Legacy apt-based Python install (now managed via mise).
+
+### Docs
+
+- README.md / README.ja.md restructured to highlight AI-first, dual-mode (Dev Container / direct-host) workflows, document the new AI power tools and `update-tools.sh` script, and update verification commands.
+
+## [0.1.0]
+
 ### Added
 
 - Zsh環境セットアップスクリプト（`setup-zsh-ubuntu.sh`）

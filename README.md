@@ -1,10 +1,10 @@
 # wsl-dev-setup
 
-**WSL2/Ubuntu Host Environment Setup Scripts for Dev Container Development**
+**One-shot WSL2/Ubuntu setup for AI-agent-driven development — Dev Container or direct host use**
 
 **English | [日本語](README.ja.md)**
 
-A comprehensive collection of shell scripts to set up development tools on WSL2/Ubuntu environments. The toolkit focuses on fast, repeatable host bootstrap workflows for Dev Container-centric development, ensuring consistent setups across teams.
+A comprehensive collection of shell scripts that bootstraps a WSL2/Ubuntu host with everything needed for modern, AI-agent-driven development. Works equally well whether you develop **inside Dev Containers** (recommended) or **directly on the host**. Ships AI agent CLIs (Claude Code / Codex / Copilot / Gemini) alongside a curated set of AI power tools (markitdown, ast-grep, yq, OCR/audio backends) so agents can read documents, search code, and operate on structured data out of the box.
 
 ## Table of Contents
 
@@ -16,15 +16,18 @@ A comprehensive collection of shell scripts to set up development tools on WSL2/
 - [6. Scripts](#6-scripts)
   - [6.1 setup-zsh-ubuntu.sh](#61-setup-zsh-ubuntush)
   - [6.2 setup-local-ubuntu.sh](#62-setup-local-ubuntush)
+  - [6.3 update-tools.sh](#63-update-toolssh)
 - [7. Troubleshooting](#7-troubleshooting)
 - [8. Contributing](#8-contributing)
 - [9. Changelog](#9-changelog)
 
 ## 1. Repository Background
 
-- Built to provide a single source of truth for host provisioning scripts targeting Dev Container workflows on WSL2/Ubuntu.
-- Emphasizes idempotent execution, detailed diagnostics, and modern tooling defaults (Volta, uv, pnpm, Docker, AI CLIs).
-- Versioned independently from application repositories so host requirements can evolve quickly, with the initial public release matching v1.0.0 of the original scripts.
+- Provides a single source of truth for WSL2/Ubuntu host provisioning that works for **both Dev Container and direct-host workflows**.
+- **AI-first**: AI agent CLIs and AI power tools (document conversion, OCR, structural code search, YAML/audio processing) are promoted to first-class install categories.
+- Standardized on **mise** as the unified runtime/CLI version manager, with **uv** handling Python packages and **Corepack-compatible pnpm** for Node.
+- Emphasizes idempotent execution, detailed diagnostics, and actively maintained 2026-era defaults.
+- Versioned independently from application repositories so host requirements can evolve quickly.
 
 ## 2. Repository Structure
 
@@ -35,17 +38,21 @@ wsl-dev-setup/
 ├── README.ja.md
 └── scripts/
     ├── setup-local-ubuntu.sh
-    └── setup-zsh-ubuntu.sh
+    ├── setup-zsh-ubuntu.sh
+    └── update-tools.sh
 ```
 
 ## 3. Features
 
-- 🤖 **AI Development Tools** - Supports Claude Code, Codex CLI, GitHub Copilot CLI, and Gemini CLI
-- 🐳 **Container Development** - Docker Engine and Docker Compose (essential for Dev Containers)
-- 📦 **Modern Package Management** - Volta (Node.js LTS), uv (Python latest stable), pnpm
-- ☁️ **Cloud Development** - AWS CLI v2, GitHub CLI
-- 🔒 **Security** - Global git-secrets configuration (prevents accidental commits of sensitive data)
-- 🎨 **Enhanced Shell Experience** - zsh + oh-my-zsh + plugins
+- 🤖 **AI Agent CLIs** - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI (choose individually)
+- 🧠 **AI Power Tools** - markitdown (PDF/Office → Markdown), tesseract-ocr (+jpn), ffmpeg, ast-grep (structural code search), yq
+- 🐳 **Container Development** - Docker Engine + Docker Compose (essential for Dev Containers)
+- ⚡ **Unified Version Manager** - mise manages Node.js LTS / pnpm / Python / uv / gitleaks / shellcheck / ast-grep / yq
+- 🐍 **Python Ecosystem** - mise-managed Python + uv for packages/venvs/CLI tools
+- ☁️ **Cloud CLIs** - AWS CLI v2 (default) / Azure CLI, Google Cloud CLI (opt-in)
+- 🔒 **Modern Secret Scanning** - gitleaks (2026 de-facto, actively maintained); pair with lefthook per project
+- 🎨 **Shell Experience** - zsh + oh-my-zsh + plugins, fzf / ripgrep / fd / jq / tree / wslu
+- 🔄 **One-shot Upgrades** - `install.sh update` batch-refreshes mise/uv/npm-managed tools
 - ✅ **Idempotency** - Safe to run multiple times
 - 📝 **Detailed Logging** - Optional log output for troubleshooting
 - 🛠️ **Unified Error Handling** - Clear error messages with actionable solutions
@@ -60,16 +67,19 @@ curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/instal
 exit
 # Open a new terminal
 
-# 3. Set up development tools
+# 3. Set up development tools (mise, languages, Docker, AI CLIs, AI power tools, ...)
 curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- local
 
-# 4. Complete required authentications
+# 4. Complete required authentications (for what you installed)
 aws configure      # or: aws configure sso
 gh auth login
 claude auth login
 codex auth login
 copilot             # authenticate with /login on first launch
 gemini              # authenticate with Google account on first launch
+
+# 5. Later: upgrade every mise / uv / npm managed tool in one shot
+./install.sh update
 ```
 
 If you prefer to inspect the repository first:
@@ -83,13 +93,21 @@ cd wsl-dev-setup
 
 ## 5. Prerequisites
 
-These scripts are designed to set up the **WSL2/Ubuntu environment (host side)**.
+These scripts are designed to set up the **WSL2/Ubuntu host**, and support both workflows below.
 
-- **Development Style**: Assumes development within Dev Containers
-- **Target Environment**: WSL2/Ubuntu (host side)
-- **Purpose**: Setting up the host environment to run Dev Containers
+### 5.1 Dev Container workflow (recommended)
 
-Dev Container environments are automatically built from `.devcontainer/` configuration, so you don't need to set them up directly with these scripts.
+- Host carries the bare minimum: Docker, mise, git, AI CLIs, AI power tools
+- Project-specific runtimes, linters, and formatters live inside each `.devcontainer/`
+- Matches the common team workflow where every project defines its own dev container
+
+### 5.2 Direct-host workflow
+
+- Host also installs Node.js LTS, pnpm, Python, uv via mise so you can develop directly on WSL
+- Per-project tools are managed via the project's own `.mise.toml`
+- Great for small projects, scratch work, or when a dev container feels like overkill
+
+Both workflows share the same foundation (`mise` + `uv` + Docker) so you can move between them without re-provisioning the host.
 
 ## 6. Scripts
 
@@ -190,35 +208,43 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
    - **fd-find** - Fast and user-friendly alternative to find
    - **unzip** - Archive extraction (required for AWS CLI)
    - **wslu** - Utility for opening browsers on WSL2
-3. **Node.js Ecosystem**
-   - **Volta** - Node.js version manager (recommended)
+3. **Version Manager (foundation)**
+   - **mise** - Unified manager for runtimes and CLI tools (replaces Volta, supersedes per-tool installers)
+4. **Node.js Ecosystem (via mise)**
    - **Node.js LTS** - JavaScript runtime
    - **pnpm** - Fast package manager
-4. **Python Ecosystem**
-   - **uv** - Fast Python package installer
-   - **Python (latest stable)** - Python runtime
-5. **Version Control Tools**
+5. **Python Ecosystem (via mise)**
+   - **Python** - Latest stable via mise
+   - **uv** - Packaging, virtualenvs, and CLI tool installer
+6. **Version Control Tools**
    - **Git** - Version control system
    - **GitHub CLI** - GitHub operations
-   - **git-secrets** - Prevents accidental commits of sensitive data (globally configured)
+   - **gitleaks** (via mise) - Modern secret scanner; wire into project-level lefthook / pre-commit hooks
    - **Git basic config** - user.name, user.email, core.editor, etc.
-6. **Container Tools**
+7. **Container Tools**
    - **Docker Engine** - Container runtime
    - **Docker Compose** - Multi-container management tool (essential for Dev Containers)
    - **Docker service auto-start** - Service startup on WSL2
-7. **Cloud Tools**
-   - **AWS CLI v2** - AWS resource operations
-   - **Azure CLI** - Microsoft Azure resource operations
-   - **Google Cloud CLI** - Google Cloud Platform resource operations
-8. **AI Tools**
+8. **Cloud Tools**
+   - **AWS CLI v2** - AWS resource operations (default-on)
+   - **Azure CLI** - Microsoft Azure resource operations (opt-in)
+   - **Google Cloud CLI** - Google Cloud Platform resource operations (opt-in)
+9. **AI Agent CLIs** (choose individually)
    - **Claude Code** - Interactive development tool with Claude AI
    - **Codex CLI** - OpenAI Codex CLI (code generation AI)
    - **GitHub Copilot CLI** - GitHub Copilot coding agent for the terminal
    - **Gemini CLI** - Google Gemini AI agent for the terminal
    - Multi-agent support: shared skills in `.agents/skills/` (Agent Skills standard), `AGENTS.md` as common entry point, Claude Code overlays in `.claude/skills/`
-9. **Development Utilities**
-   - **just** - Task runner
-   - **zoxide** - Smarter cd command with directory jumping
+10. **AI Power Tools** (boost agent capabilities)
+    - **markitdown[all]** (via uv tool) - Converts PDF / Word / Excel / PowerPoint / images / audio into Markdown
+    - **tesseract-ocr** + **tesseract-ocr-jpn** (apt) - OCR backend that enables markitdown to read scanned PDFs and images
+    - **ffmpeg** (apt) - Audio/video backend for markitdown transcription and video frame extraction
+    - **ast-grep** (via mise) - Structural (AST-based) code search and refactor
+    - **yq** (via mise) - YAML query tool; the YAML counterpart of jq
+11. **Development Utilities**
+    - **just** - Task runner
+    - **zoxide** - Smarter cd command with directory jumping
+    - **shellcheck** (via mise) - Shell script static analysis (useful for AI-generated scripts too)
 
 **6.2.2 Key Features**
 
@@ -290,22 +316,41 @@ exit
 4. **Verify tool installation**:
 
    ```bash
-   # Version checks
-   volta --version
+   # Version manager + runtimes
+   mise --version
    node --version
    pnpm --version
-   uv --version
    python3 --version
-   aws --version
+   uv --version
+
+   # Git / cloud / AI
    gh --version
+   gitleaks version
+   aws --version
    claude --version
    codex --version
    copilot --version
    gemini --version
+
+   # AI power tools
+   markitdown --version
+   tesseract --version
+   ffmpeg -version | head -n1
+   ast-grep --version
+   yq --version
+
+   # Container + dev utilities
    docker --version
    docker compose version
-   command -v git-secrets  # git-secrets doesn't have --version option
    just --version
+   shellcheck --version | head -n2
+   ```
+
+5. **Batch-update every installed tool**:
+
+   ```bash
+   ./install.sh update           # normal run
+   ./scripts/update-tools.sh -n  # dry-run to preview which tools will be upgraded
    ```
 
 **6.2.5 Git Configuration**
@@ -347,17 +392,17 @@ All critical operations include error checking with detailed information in a un
 ℹ️  手動で確認: sudo apt update
 ```
 
-**Example 2: Volta not found**
+**Example 2: mise not found / shim resolution fails**
 
 ```bash
-⚠️  Volta が見つかりません
+⚠️  mise のインストールに失敗しました
 ℹ️  考えられる原因:
-    - Volta のインストールが完了していない
-    - インストール直後で PATH が反映されていない
+    - ネットワーク接続の問題
+    - curl が利用できない
 ℹ️  対処法:
-    1. ターミナルを完全に閉じて再ログイン（exit）
-    2. このスクリプトを再実行
-ℹ️  手動で確認: volta --version
+    1. ネットワーク接続を確認
+    2. curl のインストール状態を確認: command -v curl
+ℹ️  手動で確認: curl -fsSL https://mise.run | sh
 ```
 
 **Example 3: Docker service startup failure**
@@ -404,6 +449,44 @@ Logs include:
 
 ---
 
+### 6.3 update-tools.sh
+
+A single entry point that refreshes every tool installed by the setup script, across all install backends.
+
+**6.3.1 Update Coverage**
+
+| Backend | Tools updated |
+|---|---|
+| **mise** | `mise self-update` + `mise upgrade` + `mise reshim` |
+| **uv tool** | `uv tool upgrade --all` (e.g. markitdown) |
+| **npm global** | `@openai/codex`, `@google/gemini-cli` |
+| **Native installer** | `claude update`, `copilot update` (timeout-guarded) |
+
+**6.3.2 Usage**
+
+```bash
+# Batch-update via install.sh (works locally and through curl|bash)
+./install.sh update
+
+# Run the script directly
+./scripts/update-tools.sh
+
+# Dry-run to preview which tools will be upgraded
+./scripts/update-tools.sh --dry-run
+
+# Log to a file
+SETUP_LOG=1 ./install.sh update
+SETUP_LOG=/tmp/update.log ./install.sh update
+```
+
+**6.3.3 Behavior**
+
+- Idempotent — missing tools are skipped with an `⏭️` marker
+- Resilient — a single command failure emits a warning but does not abort the run
+- Log-friendly — honors the same `SETUP_LOG` convention as `setup-local-ubuntu.sh`
+
+---
+
 ## 7. Troubleshooting
 
 ### 7.1 Common Issues
@@ -420,23 +503,25 @@ Logs include:
 3. Validate /etc/apt/sources.list configuration
 ```
 
-**7.1.2 Volta/uv not found**
+**7.1.2 mise / uv / node not found after install**
 
 ```bash
 # Error message example
-⚠️  Volta not found
+⚠️  mise のインストールに失敗しました
 ℹ️  Possible causes:
-    - Volta installation did not finish successfully
-    - PATH is not refreshed right after installation
+    - mise install did not finish successfully
+    - PATH has not been refreshed after installation
+    - You are running from a shell that has not yet sourced .zshrc / .bashrc
 ℹ️  Solutions:
     1. Completely close the terminal (exit) and reopen
     2. Rerun this script
-ℹ️  Manual verification: volta --version
+ℹ️  Manual verification: ~/.local/bin/mise --version
 
 # Additional verification steps
 1. Close terminal and reopen
 2. Check PATH via: echo $PATH
-3. Confirm Volta installation: ls -la ~/.volta
+3. Confirm mise installation: ls -la ~/.local/bin/mise
+4. Run: eval "$(~/.local/bin/mise activate bash)"
 ```
 
 **7.1.3 Docker won't start**
