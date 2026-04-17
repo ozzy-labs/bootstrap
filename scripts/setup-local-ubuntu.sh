@@ -18,10 +18,10 @@ INSTALL_PYTHON=1 # mise + Python + uv
 # コンテナツール
 INSTALL_CONTAINER=1 # Docker, Docker Compose
 
-# クラウドツール（個別選択可能）
-INSTALL_AWS_CLI=1    # AWS CLI
-INSTALL_AZURE_CLI=1  # Azure CLI
-INSTALL_GCLOUD_CLI=1 # Google Cloud CLI
+# クラウドツール（個別選択可能、Azure/GCP は opt-in）
+INSTALL_AWS_CLI=1    # AWS CLI (デフォルト ON)
+INSTALL_AZURE_CLI=0  # Azure CLI (opt-in)
+INSTALL_GCLOUD_CLI=0 # Google Cloud CLI (opt-in)
 
 # AIエージェント CLI（個別選択可能）
 INSTALL_CLAUDE_CODE=1 # Claude Code
@@ -799,7 +799,7 @@ echo "  🔧 Git関連ツール - Git, GitHub CLI, gitleaks"
 echo "  📦 Node.js環境 - mise, Node.js LTS, pnpm"
 echo "  🐍 Python環境 - mise, Python, uv"
 echo "  🐳 コンテナツール - Docker Engine, Docker Compose"
-echo "  ☁️ クラウドツール - AWS CLI, Azure CLI, Google Cloud CLI"
+echo "  ☁️ クラウドツール - AWS CLI (default) / Azure CLI, Google Cloud CLI (opt-in)"
 echo "  🤖 AIエージェント CLI - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI"
 echo "  🧠 AIパワーツール - markitdown, tesseract-ocr, ffmpeg, ast-grep, yq"
 echo "  🛠️ 開発補助ツール - just, zoxide, shellcheck"
@@ -849,20 +849,20 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CONTAINER=0
 
-  # クラウドツール（個別）
+  # クラウドツール（個別。AWS はデフォルト ON、Azure/GCP は opt-in）
   echo ""
   echo "☁️ クラウドツール:"
   read -p "  AWS CLI をインストールしますか? [Y/n]: " -n 1 -r
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AWS_CLI=0
 
-  read -p "  Azure CLI をインストールしますか? [Y/n]: " -n 1 -r
+  read -p "  Azure CLI をインストールしますか? [y/N]: " -n 1 -r
   echo ""
-  [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_AZURE_CLI=0
+  [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_AZURE_CLI=1
 
-  read -p "  Google Cloud CLI をインストールしますか? [Y/n]: " -n 1 -r
+  read -p "  Google Cloud CLI をインストールしますか? [y/N]: " -n 1 -r
   echo ""
-  [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_GCLOUD_CLI=0
+  [[ $REPLY =~ ^[Yy]$ ]] && INSTALL_GCLOUD_CLI=1
 
   # AIエージェント CLI（個別）
   echo ""
@@ -1352,15 +1352,15 @@ echo ""
 echo "1. ターミナルを完全に閉じて再ログイン:"
 echo "   exit"
 echo ""
-echo "2. クラウド認証情報を設定:"
+echo "2. クラウド認証情報を設定（インストール済みのものだけ）:"
 echo "   # AWS (どちらかを実行)"
 echo "   aws configure      # IAM ユーザーの場合"
 echo "   aws configure sso  # SSO の場合"
 echo ""
-echo "   # Azure"
+echo "   # Azure (opt-in でインストールした場合)"
 echo "   az login"
 echo ""
-echo "   # Google Cloud"
+echo "   # Google Cloud (opt-in でインストールした場合)"
 echo "   gcloud init"
 echo ""
 echo "3. GitHub 認証:"
