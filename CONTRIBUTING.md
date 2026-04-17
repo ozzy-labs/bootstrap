@@ -32,6 +32,14 @@ CI=true ./install.sh local                        # ほとんどの CI で自動
 # L0: Smoke tests（約 500ms、ネットワーク不要）
 ./tests/smoke/run.sh
 
+# L1: Static analysis（通常は lefthook が commit 時に自動実行）
+mise exec -- shellcheck --severity=warning install.sh scripts/*.sh tests/smoke/run.sh tests/integration/*.sh
+mise exec -- shfmt -d install.sh scripts/*.sh tests/smoke/run.sh tests/integration/*.sh
+mise exec -- markdownlint-cli2 '**/*.md'
+mise exec -- yamllint -c .yamllint.yaml .github/workflows .mise.toml .yamllint.yaml lefthook.yaml lefthook-base.yaml .markdownlint-cli2.yaml
+mise exec -- actionlint .github/workflows/*.yaml
+mise exec -- gitleaks detect --no-banner --redact -v
+
 # L2: BATS ユニットテスト
 mise exec -- bats tests/unit/
 

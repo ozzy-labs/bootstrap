@@ -16,13 +16,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CI=true
 
 # 最小限の前提パッケージ: スクリプトが自力でインストールする前段として必要
-# git は Git 設定の事前構成のために必要（最新版は setup-local-ubuntu.sh が PPA から入れ直す）
+# - git: Git 設定の事前構成のため（最新版は setup-local-ubuntu.sh が PPA から入れ直す）
+# - gnupg: add-apt-repository が PPA の GPG 鍵をインポートする際に gpg-agent を必要とする。
+#   ubuntu:22.04 の minimal イメージには未同梱のため明示的に追加する。
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         sudo \
         git \
+        gnupg \
         locales \
         tzdata \
         software-properties-common \
