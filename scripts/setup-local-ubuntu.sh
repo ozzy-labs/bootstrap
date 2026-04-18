@@ -53,6 +53,13 @@ _is_non_interactive() {
   [ "${WSL_DEV_SETUP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
 }
 
+# パイプ実行時 (curl ... | bash) でも対話プロンプトが動作するよう、
+# stdin が tty でなく /dev/tty が読める場合は /dev/tty にフォールバックする。
+# 非対話モード（CI / ASSUME_YES）ではフォールバックしない。
+if [ ! -t 0 ] && [ -r /dev/tty ] && ! _is_non_interactive; then
+  exec </dev/tty
+fi
+
 # [Y/n] プロンプト（既定 Y）を処理し、REPLY に結果を設定する
 # 非対話時は read をスキップして REPLY=Y を即設定
 # $1: プロンプト文字列
