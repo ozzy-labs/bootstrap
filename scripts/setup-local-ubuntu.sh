@@ -423,6 +423,15 @@ install_git_security_tools() {
   echo "✅ Git セキュリティツールインストール完了"
 }
 
+# mise を $HOME ディレクトリで実行するラッパー
+# リポジトリ内（CWD に .mise.toml がある場所）で `--global` 操作を行うと
+# mise が「ローカル設定がグローバルを上書きする」WARN を毎回出すため、
+# サブシェルで $HOME に移動してから呼び出す。`--global` の書き先は
+# ~/.config/mise/config.toml で CWD の影響を受けないため、挙動は同じ。
+_mise_at_home() {
+  (cd "$HOME" && "$MISE_BIN" "$@")
+}
+
 # mise でグローバルツールを導入する汎用ヘルパー
 # $1: tool_spec（例: node@lts, python@latest, gitleaks@latest）
 # $2: display_name（表示名）
@@ -437,12 +446,12 @@ mise_use_global() {
   fi
 
   # 既にグローバル設定済みかを確認
-  if "$MISE_BIN" ls --global 2>/dev/null | awk '{print $1}' | grep -qx "$tool_name"; then
-    "$MISE_BIN" use --global "$tool_spec" >/dev/null 2>&1 || true
-    "$MISE_BIN" install "$tool_spec" >/dev/null 2>&1 || true
+  if _mise_at_home ls --global 2>/dev/null | awk '{print $1}' | grep -qx "$tool_name"; then
+    _mise_at_home use --global "$tool_spec" >/dev/null 2>&1 || true
+    _mise_at_home install "$tool_spec" >/dev/null 2>&1 || true
     echo "  ⏭️  $display_name は導入済み・最新化しました"
   else
-    if "$MISE_BIN" use --global "$tool_spec" >/dev/null; then
+    if _mise_at_home use --global "$tool_spec" >/dev/null; then
       echo "  ✅ $display_name インストール完了"
     else
       echo "  ⚠️  $display_name のインストールに失敗しました"
@@ -659,7 +668,7 @@ install_ai_tools() {
   # mise 管理下の node で npm グローバルインストールした CLI のシムを生成
   # （Codex / Gemini 等の新規バイナリを ~/.local/share/mise/shims 経由で使えるようにする）
   if [ "$any_installed" = "1" ] && [ -x "$MISE_BIN" ]; then
-    "$MISE_BIN" reshim >/dev/null 2>&1 || true
+    _mise_at_home reshim >/dev/null 2>&1 || true
   fi
 
   [ "$any_installed" = "1" ] && echo "✅ AIツールインストール完了"

@@ -49,6 +49,11 @@ fi
 
 MISE_BIN="$HOME/.local/bin/mise"
 
+# 全ての更新コマンドは CWD に依存しない。一方、リポジトリ内（CWD に .mise.toml が
+# ある場所）で実行すると mise が「ローカル設定がグローバルを上書きする」WARN を
+# 毎回出すため、ここで $HOME に移動してから残りを実行する。
+cd "$HOME"
+
 run_or_preview() {
   local description="$1"
   shift
