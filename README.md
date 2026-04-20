@@ -1,4 +1,4 @@
-# wsl-dev-setup
+# bootstrap
 
 **One-shot WSL2/Ubuntu setup for AI-agent-driven development — Dev Container or direct host use**
 
@@ -32,7 +32,7 @@ A comprehensive collection of shell scripts that bootstraps a WSL2/Ubuntu host w
 ## 2. Repository Structure
 
 ```
-wsl-dev-setup/
+bootstrap/
 ├── install.sh
 ├── README.md
 ├── README.ja.md
@@ -62,14 +62,14 @@ wsl-dev-setup/
 
 ```bash
 # 1. Set up zsh (recommended first)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- zsh
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
 
 # 2. Restart your terminal
 exit
 # Open a new terminal
 
 # 3. Set up development tools (mise, languages, Docker, AI CLIs, AI power tools, ...)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- local
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
 
 # 4. Complete required authentications (for what you installed)
 aws configure      # or: aws configure sso
@@ -86,8 +86,8 @@ gemini              # authenticate with Google account on first launch
 If you prefer to inspect the repository first:
 
 ```bash
-git clone https://github.com/ozzy-labs/wsl-dev-setup.git
-cd wsl-dev-setup
+git clone https://github.com/ozzy-labs/bootstrap.git
+cd bootstrap
 ./install.sh zsh
 ./install.sh local
 ```
@@ -160,7 +160,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-zsh-ub
 
 ```bash
 # Via install.sh (recommended for first-time setup)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- zsh
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
 
 # Basic execution from a cloned repository
 ./install.sh zsh
@@ -282,7 +282,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
 
 ```bash
 # Via install.sh (recommended for first-time setup)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- local
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
 
 # Basic execution from a cloned repository
 ./install.sh local

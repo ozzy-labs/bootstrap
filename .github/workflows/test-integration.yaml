@@ -41,7 +41,7 @@ jobs:
           file: tests/integration/Dockerfile
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu }}
-          tags: wsl-dev-setup-test:${{ matrix.ubuntu }}
+          tags: bootstrap-test:${{ matrix.ubuntu }}
           load: true
           cache-from: type=gha,scope=ubuntu-${{ matrix.ubuntu }}
           cache-to: type=gha,scope=ubuntu-${{ matrix.ubuntu }},mode=max
@@ -51,4 +51,4 @@ jobs:
           # mise の GitHub API 叩きを認証して rate limit を 5000/hr に上げる
           GITHUB_TOKEN_FOR_MISE: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          docker run --rm -e "GITHUB_TOKEN=$GITHUB_TOKEN_FOR_MISE" wsl-dev-setup-test:${{ matrix.ubuntu }}
+          docker run --rm -e "GITHUB_TOKEN=$GITHUB_TOKEN_FOR_MISE" bootstrap-test:${{ matrix.ubuntu }}

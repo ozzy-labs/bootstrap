@@ -36,7 +36,7 @@ jobs:
           file: tests/integration/Dockerfile
           build-args: |
             UBUNTU_VERSION=${{ matrix.ubuntu-tag }}
-          tags: wsl-dev-setup-canary:${{ matrix.ubuntu-tag }}
+          tags: bootstrap-canary:${{ matrix.ubuntu-tag }}
           load: true
           cache-from: type=gha,scope=canary-${{ matrix.ubuntu-tag }}
           cache-to: type=gha,scope=canary-${{ matrix.ubuntu-tag }},mode=max
@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN_FOR_MISE: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker run --rm -e "GITHUB_TOKEN=$GITHUB_TOKEN_FOR_MISE" \
-            wsl-dev-setup-canary:${{ matrix.ubuntu-tag }}
+            bootstrap-canary:${{ matrix.ubuntu-tag }}
 
       - name: Open issue on failure
         if: failure()

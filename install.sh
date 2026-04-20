@@ -2,14 +2,14 @@
 set -euo pipefail
 
 readonly REPO_OWNER="ozzy-labs"
-readonly REPO_NAME="wsl-dev-setup"
+readonly REPO_NAME="bootstrap"
 readonly DEFAULT_REF="${WSL_DEV_SETUP_REF:-main}"
 
 usage() {
   cat <<'EOF'
 Usage:
   ./install.sh [zsh|local|all|update] [--ref <git-ref>]
-  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/wsl-dev-setup/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>]
+  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>]
 
 Commands:
   zsh     Run scripts/setup-zsh-ubuntu.sh
