@@ -16,7 +16,7 @@ dependency files were present for vulnerability scanning.
 
 ## Follow-up
 
-Trivy is now included in `.mise.toml`, and the shared lefthook pre-commit
-configuration runs `trivy fs --scanners vuln --exit-code 1 --no-progress .`.
-If this repository adds a lockfile later, the hook will fail on detected
-vulnerabilities and force the dependency audit into the normal pre-commit path.
+The shared lefthook pre-commit configuration now runs
+`trivy fs --scanners vuln --exit-code 1 --no-progress .`. If this repository
+adds a lockfile later, the hook will fail on detected vulnerabilities and force
+the dependency audit into the normal pre-commit path.
