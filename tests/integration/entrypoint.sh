@@ -69,7 +69,6 @@ for anchor in \
   "# mise（バージョン管理）" \
   "# pnpm グローバルパッケージ" \
   "# ローカルユーザー向けバイナリ" \
-  "# WSL2 でブラウザを開くための設定" \
   'eval "$(zoxide init bash)"'; do
   count=$(grep -cF "$anchor" "$HOME/.bashrc" || true)
   if [ "$count" -gt 1 ]; then

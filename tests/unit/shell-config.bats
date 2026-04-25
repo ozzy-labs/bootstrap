@@ -17,7 +17,7 @@ setup() {
   _script="$SCRIPT_ROOT/scripts/setup-local-ubuntu.sh"
   # 関数定義 & ヘルパーがある範囲を抽出（先頭から「メイン処理開始」コメントまで）
   _extracted="$BATS_TEST_TMPDIR/functions.sh"
-  awk '/^# メイン処理開始/ {exit} {print}' "$_script" > "$_extracted"
+  awk '/^# メイン処理開始/ {exit} {print}' "$_script" >"$_extracted"
   # shellcheck disable=SC1090
   source "$_extracted"
 }
@@ -26,28 +26,37 @@ setup() {
 # _is_non_interactive
 # ------------------------------------------------------------------
 
-@test "_is_non_interactive: returns true when WSL_DEV_SETUP_ASSUME_YES=1" {
+@test "_is_non_interactive: returns true when BOOTSTRAP_ASSUME_YES=1" {
+  BOOTSTRAP_ASSUME_YES=1
+  unset WSL_DEV_SETUP_ASSUME_YES CI
+  run _is_non_interactive
+  [ "$status" -eq 0 ]
+}
+
+@test "_is_non_interactive: returns true when legacy WSL_DEV_SETUP_ASSUME_YES=1 (backward compat)" {
+  unset BOOTSTRAP_ASSUME_YES CI
   WSL_DEV_SETUP_ASSUME_YES=1
-  unset CI
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns true when CI=true" {
-  unset WSL_DEV_SETUP_ASSUME_YES
+  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES
   CI=true
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns false when neither env is set" {
-  unset WSL_DEV_SETUP_ASSUME_YES CI
+  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES CI
   run _is_non_interactive
   [ "$status" -ne 0 ]
 }
 
 @test "_is_non_interactive: returns false for other values" {
   # shellcheck disable=SC2034  # 変数は sourced 関数経由で参照される
+  BOOTSTRAP_ASSUME_YES=0
+  # shellcheck disable=SC2034
   WSL_DEV_SETUP_ASSUME_YES=0
   # shellcheck disable=SC2034
   CI=false
@@ -85,7 +94,7 @@ setup() {
 }
 
 @test "add_to_shell_config: preserves existing content" {
-  echo "# existing line" > "$HOME/.bashrc"
+  echo "# existing line" >"$HOME/.bashrc"
   run add_to_shell_config "$HOME/.bashrc" "EXPORT_FOO" "export FOO=1" "added FOO"
   [ "$status" -eq 0 ]
   grep -q "existing line" "$HOME/.bashrc"
@@ -97,12 +106,12 @@ setup() {
 # ------------------------------------------------------------------
 
 @test "add_to_shell_config: skips when pattern already present" {
-  echo "export FOO=1" > "$HOME/.bashrc"
+  echo "export FOO=1" >"$HOME/.bashrc"
   run add_to_shell_config "$HOME/.bashrc" "FOO=1" "export FOO=1" "added FOO"
   [ "$status" -eq 0 ]
   [[ "$output" == *"既に設定済み"* ]]
   # 行数が増えていない
-  [ "$(wc -l < "$HOME/.bashrc")" -eq 1 ]
+  [ "$(wc -l <"$HOME/.bashrc")" -eq 1 ]
 }
 
 @test "add_to_shell_config: running twice does not duplicate content" {
@@ -127,7 +136,7 @@ setup() {
 # ------------------------------------------------------------------
 
 @test "add_to_shell_config: pattern substring matches existing content" {
-  cat > "$HOME/.bashrc" <<'BASHRC'
+  cat >"$HOME/.bashrc" <<'BASHRC'
 # Some shell integration
 eval "$(mise activate bash)"
 BASHRC
@@ -137,7 +146,7 @@ BASHRC
 }
 
 @test "add_to_shell_config: different pattern adds alongside existing" {
-  cat > "$HOME/.bashrc" <<'BASHRC'
+  cat >"$HOME/.bashrc" <<'BASHRC'
 eval "$(mise activate bash)"
 BASHRC
   run add_to_shell_config "$HOME/.bashrc" "zoxide init" 'eval "$(zoxide init bash)"' "zoxide init"

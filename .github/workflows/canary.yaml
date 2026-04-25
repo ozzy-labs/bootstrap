@@ -14,14 +14,14 @@ permissions:
   issues: write # 失敗時の Issue 自動起票に必須
 
 jobs:
-  canary:
+  # 既存: 次期 Ubuntu LTS リリース候補（devel / rolling）を Docker で先回り検証
+  canary-ubuntu-future:
     name: Canary (ubuntu:${{ matrix.ubuntu-tag }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # 次期 Ubuntu リリース候補を先回り検証
         ubuntu-tag: ["devel", "rolling"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -106,6 +106,144 @@ jobs:
                 repo,
                 title,
                 body,
+                labels: ["canary", "investigation-needed"],
+              });
+            }
+
+  # 新規: 非 WSL Linux（Ubuntu Server 等を想定した GitHub Actions の素の ubuntu-latest）
+  # で setup-local-ubuntu.sh を直接実行し、bare-metal インストールが緑であることを検証する。
+  canary-ubuntu-native:
+    name: Canary (Ubuntu Server, native install)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BOOTSTRAP_ASSUME_YES: "1"
+      CI: "true"
+      # コンテナ専用の重量ツールはランナー上では不要なので最小化
+      INSTALL_CONTAINER: "0"
+      INSTALL_CLAUDE_CODE: "0"
+      INSTALL_CODEX_CLI: "0"
+      INSTALL_COPILOT_CLI: "0"
+      INSTALL_GEMINI_CLI: "0"
+      INSTALL_AWS_CLI: "0"
+      INSTALL_AZURE_CLI: "0"
+      INSTALL_GCLOUD_CLI: "0"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Pre-configure git identity (skip interactive prompt)
+        run: |
+          git config --global user.name "Canary Runner"
+          git config --global user.email "canary@example.com"
+
+      - name: Run install.sh local on bare ubuntu-latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./install.sh local
+
+      - name: Smoke-check mise + key tools
+        run: |
+          export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
+          mise --version
+          node --version
+          python3 --version
+          uv --version
+          gitleaks version
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const date = new Date().toISOString().slice(0, 10);
+            const { serverUrl, repo: { owner, repo }, runId } = context;
+            const runUrl = `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+            const title = `Canary failure: Ubuntu Server (native) / ${date}`;
+            const body = [
+              `Canary workflow failed on bare ubuntu-latest (non-WSL Linux) on ${date}.`,
+              ``,
+              `**Run:** ${runUrl}`,
+              ``,
+              `Non-blocking: Canary failures do not gate main-line PRs.`,
+            ].join("\n");
+            const existing = await github.paginate(
+              github.rest.issues.listForRepo,
+              { owner, repo, state: "open", labels: "canary", per_page: 100 },
+            );
+            const duplicate = existing.find((issue) => issue.title === title);
+            if (duplicate) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: duplicate.number,
+                body: `同じ組み合わせで再発しました。\n\n**Run:** ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner, repo, title, body,
+                labels: ["canary", "investigation-needed"],
+              });
+            }
+
+  # 新規: macOS で setup-local-macos.sh を直接実行し、mise を入口にした共通フローが
+  # 緑であることを検証する。Docker Desktop / AI CLI は対象外（READMEの該当章参照）。
+  canary-macos:
+    name: Canary (macOS, native install)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    env:
+      BOOTSTRAP_ASSUME_YES: "1"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run install.sh local on macos-latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./install.sh local
+
+      - name: Smoke-check mise + key tools
+        run: |
+          export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH"
+          mise --version
+          mise exec node@lts -- node --version
+          mise exec python -- python3 --version
+          mise exec uv -- uv --version
+          mise exec gitleaks -- gitleaks version
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const date = new Date().toISOString().slice(0, 10);
+            const { serverUrl, repo: { owner, repo }, runId } = context;
+            const runUrl = `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+            const title = `Canary failure: macOS / ${date}`;
+            const body = [
+              `Canary workflow failed on macos-latest on ${date}.`,
+              ``,
+              `**Run:** ${runUrl}`,
+              ``,
+              `## Triage checklist`,
+              ``,
+              `- [ ] mise installer (mise.run) behavior change`,
+              `- [ ] mise plugin (node / python / uv / gitleaks) breaking change`,
+              `- [ ] macOS runner image upgrade broke a built-in tool`,
+              ``,
+              `Non-blocking: Canary failures do not gate main-line PRs.`,
+            ].join("\n");
+            const existing = await github.paginate(
+              github.rest.issues.listForRepo,
+              { owner, repo, state: "open", labels: "canary", per_page: 100 },
+            );
+            const duplicate = existing.find((issue) => issue.title === title);
+            if (duplicate) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: duplicate.number,
+                body: `同じ組み合わせで再発しました。\n\n**Run:** ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner, repo, title, body,
                 labels: ["canary", "investigation-needed"],
               });
             }

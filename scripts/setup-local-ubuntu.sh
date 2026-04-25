@@ -9,7 +9,7 @@ set -e
 
 # 基本開発環境
 INSTALL_BUILD_TOOLS="${INSTALL_BUILD_TOOLS:-1}" # build-essential
-INSTALL_BASIC_CLI="${INSTALL_BASIC_CLI:-1}"     # tree, fzf, jq, ripgrep, fd, unzip, wslu
+INSTALL_BASIC_CLI="${INSTALL_BASIC_CLI:-1}"     # tree, fzf, jq, ripgrep, fd, unzip
 INSTALL_GIT_TOOLS="${INSTALL_GIT_TOOLS:-1}"     # Git, GitHub CLI, gitleaks
 
 # プログラミング言語環境（mise で統一管理）
@@ -48,9 +48,10 @@ MISE_BIN="$HOME/.local/bin/mise"
 # ========================================
 
 # 非対話モードかどうかを判定
-# WSL_DEV_SETUP_ASSUME_YES=1 or CI=true でプロンプトを自動回答する
+# BOOTSTRAP_ASSUME_YES=1（旧名 WSL_DEV_SETUP_ASSUME_YES も後方互換で受理）
+# または CI=true でプロンプトを自動回答する
 _is_non_interactive() {
-  [ "${WSL_DEV_SETUP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
+  [ "${BOOTSTRAP_ASSUME_YES:-${WSL_DEV_SETUP_ASSUME_YES:-0}}" = "1" ] || [ "${CI:-}" = "true" ]
 }
 
 # パイプ実行時 (curl ... | bash) でも対話プロンプトが動作するよう、
@@ -254,39 +255,11 @@ install_basic_cli_tools() {
     echo "  ⏭️  unzip は最新版です"
   fi
 
-  # wslu のインストール（WSL2 でブラウザを開くために必要）
-  # Ubuntu 22.04 / 24.04 は main リポジトリに含まれるが、26.04 以降は未収録の
-  # 場合があるため PPA フォールバックを用意し、いずれも失敗した場合は警告の上で
-  # セットアップ全体を中断しない（wslview なしでもホスト開発自体は機能するため）。
-  install_wslu() {
-    if sudo apt-get install -y wslu 2>/dev/null; then
-      echo "  ✅ wslu インストール完了（apt）"
-      return 0
-    fi
-    echo "  ℹ️  wslu が標準リポジトリに無いため PPA（ppa:wslutilities/wslu）を試行..."
-    if sudo add-apt-repository -y ppa:wslutilities/wslu >/dev/null 2>&1; then
-      if sudo apt-get update -qq 2>/dev/null && sudo apt-get install -y wslu 2>/dev/null; then
-        echo "  ✅ wslu インストール完了（PPA）"
-        return 0
-      fi
-      # PPA 追加には成功したが install で失敗した場合、Release ファイル欠落等で
-      # 以降の apt-get update を汚染するため PPA sources を確実に削除する
-      sudo rm -f /etc/apt/sources.list.d/wslutilities-ubuntu-wslu-*.list \
-        /etc/apt/sources.list.d/wslutilities-ubuntu-wslu-*.sources 2>/dev/null || true
-      sudo apt-get update -qq >/dev/null 2>&1 || true
-    fi
-    echo "  ⚠️  wslu のインストールに失敗しました（Ubuntu バージョン未対応の可能性）"
-    echo "  ℹ️  影響: wslview コマンドが使えないため WSL2 から Windows ブラウザの自動起動はできません"
-    echo "  ℹ️  手動インストール: https://github.com/wslutilities/wslu#installation"
-    return 0
-  }
-
-  if ! command -v wslview &>/dev/null; then
-    install_wslu
-  else
-    sudo apt-get install -y --only-upgrade wslu >/dev/null 2>&1 || true
-    echo "  ⏭️  wslu は最新版です"
-  fi
+  # NOTE: wslu / wslview は WSL2 専用ユーティリティのため、bootstrap の
+  # 共通フローからは除外している。WSL2 上で `wslview` が必要な場合は
+  # 各 WSL ディストリで手動インストールする想定:
+  #   sudo apt-get install -y wslu  # Ubuntu 22.04 / 24.04 では標準リポジトリに含まれる
+  #   PPA: ppa:wslutilities/wslu
 
   echo "✅ 基本CLIツールインストール完了"
 }
@@ -814,7 +787,7 @@ if [ -n "$SETUP_LOG" ]; then
   echo "ℹ️  ログを $LOG_FILE に記録します"
 fi
 
-echo "🚀 WSL2/Ubuntu ローカル環境セットアップ開始"
+echo "🚀 Ubuntu/Debian ローカル環境セットアップ開始（WSL2 / 非 WSL の両対応）"
 echo ""
 
 # ========================================
@@ -853,7 +826,7 @@ echo "📦 インストール対象ツールの選択"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "インストール可能なツール:"
-echo "  📌 基本CLIツール - tree, fzf, jq, ripgrep, fd, unzip, wslu"
+echo "  📌 基本CLIツール - tree, fzf, jq, ripgrep, fd, unzip"
 echo "  🔧 ビルドツール - build-essential"
 echo "  🔧 Git関連ツール - Git, GitHub CLI, gitleaks"
 echo "  📦 Node.js環境 - mise, Node.js LTS, pnpm"
@@ -1257,7 +1230,7 @@ if command -v git &>/dev/null; then
     echo "  ⏭️  core.editor は既に $(git config --global core.editor) に設定済み"
   fi
 
-  # 改行コード自動変換設定（WSL2 では input が推奨）
+  # 改行コード自動変換設定（Linux/macOS は input、Windows との混在環境にも安全）
   if [ "$(git config --global core.autocrlf)" != "input" ]; then
     git config --global core.autocrlf input
     echo "  ✅ core.autocrlf を input に設定しました（コミット時にCRLF→LF変換）"
@@ -1265,7 +1238,7 @@ if command -v git &>/dev/null; then
     echo "  ⏭️  core.autocrlf は既に input に設定済み"
   fi
 
-  # ファイルの実行権限を追跡（WSL2 でのファイル権限管理）
+  # ファイルの実行権限を追跡（POSIX ファイルシステム前提）
   if [ "$(git config --global core.fileMode)" != "true" ]; then
     git config --global core.fileMode true
     echo "  ✅ core.fileMode を true に設定しました（実行権限追跡）"
@@ -1287,13 +1260,9 @@ if command -v git &>/dev/null; then
   echo "✅ Git 設定完了"
 fi
 
-# BROWSER 環境変数の設定（WSL2 でブラウザを開くために必要）
-echo ""
-echo "🌐 BROWSER 環境変数を設定中..."
-add_to_shell_config ~/.zshrc "export BROWSER=wslview" "# WSL2 でブラウザを開くための設定
-export BROWSER=wslview" "~/.zshrc に BROWSER 環境変数を追加しました"
-add_to_shell_config ~/.bashrc "export BROWSER=wslview" "# WSL2 でブラウザを開くための設定
-export BROWSER=wslview" "~/.bashrc に BROWSER 環境変数を追加しました"
+# NOTE: BROWSER=wslview の自動設定は WSL2 専用のため bootstrap の共通フローからは
+# 除外している。WSL2 上で必要な場合は wslu インストール後に手動で追加する:
+#   echo 'export BROWSER=wslview' >> ~/.zshrc
 
 # PATH 環境変数の設定（mise activate は install_mise_and_languages で追加済み）
 echo ""

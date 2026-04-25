@@ -1,10 +1,10 @@
 # bootstrap
 
-**One-shot WSL2/Ubuntu setup for AI-agent-driven development — Dev Container or direct host use**
+**One-shot host setup for AI-agent-driven development — WSL2 / non-WSL Ubuntu / macOS, Dev Container or direct host use**
 
 **English | [日本語](README.ja.md)**
 
-A comprehensive collection of shell scripts that bootstraps a WSL2/Ubuntu host with everything needed for modern, AI-agent-driven development. Works equally well whether you develop **inside Dev Containers** (recommended) or **directly on the host**. Ships AI agent CLIs (Claude Code / Codex / Copilot / Gemini) alongside a curated set of AI power tools (markitdown, ast-grep, yq, OCR/audio backends) so agents can read documents, search code, and operate on structured data out of the box.
+A comprehensive collection of shell scripts that bootstraps a development host (WSL2, non-WSL Ubuntu/Debian, or macOS) with everything needed for modern, AI-agent-driven development. Works equally well whether you develop **inside Dev Containers** (recommended) or **directly on the host**. Ships AI agent CLIs (Claude Code / Codex / Copilot / Gemini) alongside a curated set of AI power tools (markitdown, ast-grep, yq, OCR/audio backends) so agents can read documents, search code, and operate on structured data out of the box.
 
 ## Table of Contents
 
@@ -16,14 +16,15 @@ A comprehensive collection of shell scripts that bootstraps a WSL2/Ubuntu host w
 - [6. Scripts](#6-scripts)
   - [6.1 setup-zsh-ubuntu.sh](#61-setup-zsh-ubuntush)
   - [6.2 setup-local-ubuntu.sh](#62-setup-local-ubuntush)
-  - [6.3 update-tools.sh](#63-update-toolssh)
+  - [6.3 setup-local-macos.sh](#63-setup-local-macossh)
+  - [6.4 update-tools.sh](#64-update-toolssh)
 - [7. Troubleshooting](#7-troubleshooting)
 - [8. Contributing](#8-contributing)
 - [9. Changelog](#9-changelog)
 
 ## 1. Repository Background
 
-- Provides a single source of truth for WSL2/Ubuntu host provisioning that works for **both Dev Container and direct-host workflows**.
+- Provides a single source of truth for development-host provisioning (WSL2, non-WSL Ubuntu/Debian, macOS) that works for **both Dev Container and direct-host workflows**.
 - **AI-first**: AI agent CLIs and AI power tools (document conversion, OCR, structural code search, YAML/audio processing) are promoted to first-class install categories.
 - Standardized on **mise** as the unified runtime/CLI version manager, with **uv** handling Python packages and **Corepack-compatible pnpm** for Node.
 - Emphasizes idempotent execution, detailed diagnostics, and actively maintained 2026-era defaults.
@@ -33,13 +34,14 @@ A comprehensive collection of shell scripts that bootstraps a WSL2/Ubuntu host w
 
 ```
 bootstrap/
-├── install.sh
+├── install.sh                      # OS-aware dispatcher (Linux → ubuntu, Darwin → macos)
 ├── README.md
 ├── README.ja.md
 └── scripts/
-    ├── setup-local-ubuntu.sh
-    ├── setup-zsh-ubuntu.sh
-    └── update-tools.sh
+    ├── setup-local-ubuntu.sh       # Ubuntu/Debian (WSL2 + non-WSL Linux) full provisioning
+    ├── setup-local-macos.sh        # macOS (mise-first, lightweight)
+    ├── setup-zsh-ubuntu.sh         # zsh + oh-my-zsh on Ubuntu/Debian
+    └── update-tools.sh             # Cross-OS batch update
 ```
 
 ## 3. Features
@@ -51,9 +53,11 @@ bootstrap/
 - 🐍 **Python Ecosystem** - mise-managed Python + uv for packages/venvs/CLI tools
 - ☁️ **Cloud CLIs** - AWS CLI v2 (default) / Azure CLI, Google Cloud CLI (opt-in)
 - 🔒 **Modern Secret Scanning** - gitleaks (2026 de-facto, actively maintained); pair with lefthook per project
-- 🎨 **Shell Experience** - zsh + oh-my-zsh + plugins, fzf / ripgrep / fd / jq / tree / wslu
+- 🎨 **Shell Experience** - zsh + oh-my-zsh + plugins (Ubuntu/Debian), fzf / ripgrep / fd / jq / tree
 - 🔄 **One-shot Upgrades** - `install.sh update` batch-refreshes mise/uv/npm-managed tools
 - 🐧 **Ubuntu LTS Coverage** - CI-verified on 22.04 + 24.04; canary-tested on **26.04 Resolute Raccoon** (next LTS) so the toolchain continues to work the day 26.04 lands on WSL2
+- 🍎 **macOS Coverage** - Native `setup-local-macos.sh` keeps the same mise-first flow; canary-verified weekly on `macos-latest`
+- 🖥️ **Non-WSL Linux Coverage** - Bare-metal install verified weekly on `ubuntu-latest` (Ubuntu Server, EC2, GCE, etc.)
 - ✅ **Idempotency** - Safe to run multiple times
 - 📝 **Detailed Logging** - Optional log output for troubleshooting
 - 🛠️ **Unified Error Handling** - Clear error messages with actionable solutions
@@ -94,18 +98,20 @@ cd bootstrap
 
 ## 5. Prerequisites
 
-These scripts are designed to set up the **WSL2/Ubuntu host**, and support both workflows below.
+These scripts are designed to set up a **development host** across multiple operating systems, and support both workflows below.
 
-### 5.1 Supported Ubuntu releases
+### 5.1 Supported operating systems
 
-| Release | Status |
-|---|---|
-| **22.04 LTS (Jammy Jellyfish)** | ✅ CI-verified every PR / main push |
-| **24.04 LTS (Noble Numbat)** | ✅ CI-verified every PR / main push |
-| **25.10 (Questing Quokka)** | ✅ Canary-verified weekly |
-| **26.04 LTS (Resolute Raccoon)** | ✅ Canary-verified weekly — ready for the next LTS the day it lands |
+| OS | Script | Status |
+|---|---|---|
+| **WSL2 / Ubuntu 22.04 LTS** | `setup-local-ubuntu.sh` | ✅ CI-verified every PR / main push |
+| **WSL2 / Ubuntu 24.04 LTS** | `setup-local-ubuntu.sh` | ✅ CI-verified every PR / main push |
+| **Non-WSL Linux (Ubuntu Server etc.)** | `setup-local-ubuntu.sh` | ✅ Canary-verified weekly on `ubuntu-latest` (bare-metal install, no Docker) |
+| **macOS (latest)** | `setup-local-macos.sh` | ✅ Canary-verified weekly on `macos-latest` (mise-first lightweight flow) |
+| **Ubuntu 25.10 (Questing Quokka)** | `setup-local-ubuntu.sh` | ✅ Canary-verified weekly via `ubuntu:rolling` Docker tag |
+| **Ubuntu 26.04 LTS (Resolute Raccoon)** | `setup-local-ubuntu.sh` | ✅ Canary-verified weekly via `ubuntu:devel` — ready for the next LTS the day it lands |
 
-The weekly canary workflow runs the full integration harness against `ubuntu:devel` and `ubuntu:rolling` Docker tags so upstream breaking changes (package renames, PPA removals, installer quirks) are caught before the next LTS ships.
+`install.sh` auto-detects the OS and dispatches `local` to the matching script (`setup-local-ubuntu.sh` for Linux, `setup-local-macos.sh` for Darwin). The weekly canary runs the full integration harness against `ubuntu:devel` / `ubuntu:rolling` Docker tags, the bare `ubuntu-latest` runner (non-WSL Linux), and `macos-latest`, so upstream breaking changes are caught early on every supported platform.
 
 ### 5.2 Dev Container workflow (recommended)
 
@@ -115,7 +121,7 @@ The weekly canary workflow runs the full integration harness against `ubuntu:dev
 
 ### 5.3 Direct-host workflow
 
-- Host also installs Node.js LTS, pnpm, Python, uv via mise so you can develop directly on WSL
+- Host also installs Node.js LTS, pnpm, Python, uv via mise so you can develop directly on WSL2 / non-WSL Linux / macOS
 - Per-project tools are managed via the project's own `.mise.toml`
 - Great for small projects, scratch work, or when a dev container feels like overkill
 
@@ -125,7 +131,7 @@ Both workflows share the same foundation (`mise` + `uv` + Docker) so you can mov
 
 ### 6.1 setup-zsh-ubuntu.sh
 
-Sets up zsh + oh-my-zsh + plugins on WSL2/Ubuntu environment.
+Sets up zsh + oh-my-zsh + plugins on Ubuntu/Debian (WSL2 + non-WSL Linux). On macOS this step is skipped — `install.sh zsh` prints a notice and exits cleanly because macOS already ships with zsh as the default shell.
 
 You can run it either through `install.sh` or directly via `scripts/setup-zsh-ubuntu.sh`.
 
@@ -193,7 +199,8 @@ echo $plugins
 
 **6.1.5 Notes**
 
-- For WSL2/Ubuntu environment **outside** Dev Container
+- For Ubuntu/Debian environments (WSL2 or non-WSL Linux) **outside** Dev Container
+- On macOS the script is skipped automatically (see note above)
 - Inside Dev Container, it's automatically set up via Dockerfile
 - Safe to run multiple times (idempotent)
 - If default shell change fails, manual setup instructions will be displayed
@@ -202,7 +209,7 @@ echo $plugins
 
 ### 6.2 setup-local-ubuntu.sh
 
-Comprehensive setup script that installs required development tools on WSL2/Ubuntu environment.
+Comprehensive setup script that installs required development tools on Ubuntu/Debian (WSL2 + non-WSL Linux such as Ubuntu Server, EC2, GCE, container-based VMs, etc.). WSL-specific bits (`wslu`, `BROWSER=wslview`) are intentionally **not** automated — see the inline notes in the script for the manual one-liner.
 
 You can run it either through `install.sh` or directly via `scripts/setup-local-ubuntu.sh`.
 
@@ -219,7 +226,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
    - **ripgrep** - Fast text search tool
    - **fd-find** - Fast and user-friendly alternative to find
    - **unzip** - Archive extraction (required for AWS CLI)
-   - **wslu** - Utility for opening browsers on WSL2
+   - WSL2-only `wslu` / `BROWSER=wslview` are **not** automated; see inline notes in the script for the manual one-liner.
 3. **Version Manager (foundation)**
    - **mise** - Unified manager for runtimes and CLI tools (replaces Volta, supersedes per-tool installers)
 4. **Node.js Ecosystem (via mise)**
@@ -452,20 +459,61 @@ Logs include:
 
 **6.2.8 Notes**
 
-- For WSL2/Ubuntu environment **outside** Dev Container
+- For Ubuntu/Debian environments (WSL2 or non-WSL Linux) **outside** Dev Container
 - Inside Dev Container, necessary tools are already installed
 - Safe to run multiple times (idempotent)
 - On non-Ubuntu/Debian systems, a warning is displayed and confirmation is requested
 - If Git username/email is not set, interactive configuration is prompted
 - Whitespace-only input and invalid email addresses are validated
+- WSL2-only utilities (`wslu`, `BROWSER=wslview`) are not installed automatically — see inline notes in the script
 
 ---
 
-### 6.3 update-tools.sh
+### 6.3 setup-local-macos.sh
+
+macOS counterpart to `setup-local-ubuntu.sh`, intentionally lighter-weight: focuses on **mise as the entry point** for runtime/CLI provisioning, and defers OS-integration (Docker Desktop, AI agent CLIs requiring interactive auth, cloud CLIs) to manual install.
+
+**6.3.1 What Gets Installed**
+
+- **mise** — installed via `curl -fsSL https://mise.run | sh` (same canonical path as Linux)
+- **Node.js LTS / pnpm / Python / uv** (via `mise use -g`, ADR-0006 compliant)
+- **gitleaks** (via mise) — modern secret scanner
+- **ast-grep / yq** (via mise) — AI power tools
+- **markitdown[all]** (via `uv tool install`)
+- **just / zoxide / shellcheck** (via mise) — dev helpers
+
+**6.3.2 What Is NOT Installed (manual on macOS)**
+
+- **Docker Desktop** — license + interactive installer required; install from <https://www.docker.com/products/docker-desktop>
+- **AI agent CLIs** (Claude Code / Codex / Copilot / Gemini) — interactive authentication; install per the vendor docs
+- **Cloud CLIs** (`aws`, `az`, `gcloud`) — `brew install awscli azure-cli google-cloud-sdk` recommended
+
+**6.3.3 Usage**
+
+```bash
+# Auto-dispatched by install.sh on Darwin
+./install.sh local
+
+# Direct invocation
+./scripts/setup-local-macos.sh
+
+# Non-interactive (CI / scripted)
+BOOTSTRAP_ASSUME_YES=1 ./scripts/setup-local-macos.sh
+```
+
+**6.3.4 Notes**
+
+- Idempotent — safe to re-run; mise handles the heavy lifting
+- Adds `mise activate` to `~/.zshrc`, `~/.bash_profile`, and `~/.bashrc`
+- Verified weekly on `macos-latest` via the canary workflow
+
+---
+
+### 6.4 update-tools.sh
 
 A single entry point that refreshes every tool installed by the setup script, across all install backends.
 
-**6.3.1 Update Coverage**
+**6.4.1 Update Coverage**
 
 | Backend | Tools updated |
 |---|---|
@@ -474,7 +522,7 @@ A single entry point that refreshes every tool installed by the setup script, ac
 | **npm global** | `@openai/codex`, `@google/gemini-cli` |
 | **Native installer** | `claude update`, `copilot update` (timeout-guarded) |
 
-**6.3.2 Usage**
+**6.4.2 Usage**
 
 ```bash
 # Batch-update via install.sh (works locally and through curl|bash)
@@ -491,11 +539,12 @@ SETUP_LOG=1 ./install.sh update
 SETUP_LOG=/tmp/update.log ./install.sh update
 ```
 
-**6.3.3 Behavior**
+**6.4.3 Behavior**
 
 - Idempotent — missing tools are skipped with an `⏭️` marker
 - Resilient — a single command failure emits a warning but does not abort the run
 - Log-friendly — honors the same `SETUP_LOG` convention as `setup-local-ubuntu.sh`
+- Cross-OS — works equally on Linux (WSL2 / non-WSL) and macOS
 
 ---
 

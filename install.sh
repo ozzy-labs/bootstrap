@@ -3,7 +3,18 @@ set -euo pipefail
 
 readonly REPO_OWNER="ozzy-labs"
 readonly REPO_NAME="bootstrap"
-readonly DEFAULT_REF="${WSL_DEV_SETUP_REF:-main}"
+# BOOTSTRAP_REF is the canonical name; WSL_DEV_SETUP_REF is kept as a legacy alias
+# so users still on the old curl|bash invocation continue to work.
+readonly DEFAULT_REF="${BOOTSTRAP_REF:-${WSL_DEV_SETUP_REF:-main}}"
+
+# OS 判定: install.sh local / all が dispatch 先のスクリプトを切り替えるために使う
+detect_os() {
+  case "$(uname -s)" in
+  Linux*) printf 'linux' ;;
+  Darwin*) printf 'darwin' ;;
+  *) printf 'unknown' ;;
+  esac
+}
 
 usage() {
   cat <<'EOF'
@@ -12,9 +23,11 @@ Usage:
   curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>]
 
 Commands:
-  zsh     Run scripts/setup-zsh-ubuntu.sh
-  local   Run scripts/setup-local-ubuntu.sh
-  all     Run both setup scripts in order (default)
+  zsh     Run scripts/setup-zsh-ubuntu.sh (Linux/WSL only; macOS skips with a notice)
+  local   Run the host setup script for the detected OS
+            - Linux  → scripts/setup-local-ubuntu.sh
+            - macOS  → scripts/setup-local-macos.sh
+  all     Run zsh setup (when supported) + local setup in order (default)
   update  Run scripts/update-tools.sh (batch-update mise/uv/npm managed tools)
 
 Options:
@@ -22,7 +35,8 @@ Options:
   -h, --help       Show this help message
 
 Environment:
-  WSL_DEV_SETUP_REF  Default git ref to download when running remotely
+  BOOTSTRAP_REF      Default git ref to download when running remotely
+  WSL_DEV_SETUP_REF  Legacy alias for BOOTSTRAP_REF (still honored)
   SETUP_LOG          Passed through to the underlying setup/update script(s)
 EOF
 }
@@ -63,20 +77,43 @@ run_script() {
   "$script_path"
 }
 
+local_setup_script_for_os() {
+  local base_dir="$1"
+  local os
+  os="$(detect_os)"
+  case "$os" in
+  linux) printf '%s/scripts/setup-local-ubuntu.sh' "$base_dir" ;;
+  darwin) printf '%s/scripts/setup-local-macos.sh' "$base_dir" ;;
+  *) die "Unsupported OS: $(uname -s) (only Linux and macOS are supported)" ;;
+  esac
+}
+
+run_zsh_setup_if_supported() {
+  local base_dir="$1"
+  local os
+  os="$(detect_os)"
+  if [ "$os" = "darwin" ]; then
+    log ""
+    log "ℹ️  Skipping setup-zsh-ubuntu.sh on macOS (use the system zsh; oh-my-zsh can be installed manually if desired)."
+    return 0
+  fi
+  run_script "$base_dir/scripts/setup-zsh-ubuntu.sh"
+}
+
 run_local() {
   local target="$1"
   local base_dir="$2"
 
   case "$target" in
   zsh)
-    run_script "$base_dir/scripts/setup-zsh-ubuntu.sh"
+    run_zsh_setup_if_supported "$base_dir"
     ;;
   local)
-    run_script "$base_dir/scripts/setup-local-ubuntu.sh"
+    run_script "$(local_setup_script_for_os "$base_dir")"
     ;;
   all)
-    run_script "$base_dir/scripts/setup-zsh-ubuntu.sh"
-    run_script "$base_dir/scripts/setup-local-ubuntu.sh"
+    run_zsh_setup_if_supported "$base_dir"
+    run_script "$(local_setup_script_for_os "$base_dir")"
     ;;
   update)
     run_script "$base_dir/scripts/update-tools.sh"
@@ -118,7 +155,11 @@ main() {
     if [ -f "$source_path" ]; then
       local script_dir
       script_dir="$(cd "$(dirname "$source_path")" && pwd)"
-      if [ -f "$script_dir/scripts/setup-zsh-ubuntu.sh" ] && [ -f "$script_dir/scripts/setup-local-ubuntu.sh" ]; then
+      # Local-checkout fast path: skip the download if the dispatched script
+      # for the current OS exists alongside install.sh.
+      local local_script
+      if local_script="$(local_setup_script_for_os "$script_dir" 2>/dev/null)" &&
+        [ -f "$local_script" ]; then
         run_local "$target" "$script_dir"
         return
       fi
