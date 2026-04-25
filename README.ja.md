@@ -48,7 +48,7 @@ bootstrap/
 
 - 🤖 **AI エージェント CLI** - Claude Code / Codex CLI / GitHub Copilot CLI / Gemini CLI（個別選択可）
 - 🧠 **AI パワーツール** - markitdown（PDF/Office → Markdown）/ tesseract-ocr(+jpn) / ffmpeg / ast-grep（構造的コード検索）/ yq
-- 🐳 **コンテナ開発環境** - Docker Engine + Docker Compose（Dev Container の前提）
+- 🐳 **コンテナ / サンドボックス基盤** - Docker Engine + Docker Compose（Dev Container の前提）+ bubblewrap
 - ⚡ **統一バージョン管理** - mise で Node.js LTS / pnpm / Python / uv / gitleaks / shellcheck / ast-grep / yq を一元管理
 - 🐍 **Python エコシステム** - mise 管理の Python + uv（パッケージ・venv・CLI ツール）
 - ☁️ **クラウド CLI** - AWS CLI v2（デフォルト ON）/ Azure CLI, Google Cloud CLI（opt-in）
@@ -240,7 +240,8 @@ Ubuntu/Debian 環境（WSL2 + 非 WSL Linux：Ubuntu Server / EC2 / GCE / コン
    - **GitHub CLI** - GitHub 操作
    - **gitleaks**（mise 経由）- モダンなシークレットスキャナ。プロジェクト側の lefthook / pre-commit に組み込む運用
    - **Git 基本設定** - user.name, user.email, core.editor などの自動設定
-7. **コンテナツール**
+7. **コンテナ / サンドボックスツール**
+   - **bubblewrap** - モダンな CLI / デスクトップツールが利用する軽量な非特権サンドボックス基盤
    - **Docker Engine** - コンテナ実行環境
    - **Docker Compose** - 複数コンテナの管理ツール（Dev Container に必須）
    - **Docker サービス自動起動** - WSL2 でのサービス起動
@@ -359,6 +360,7 @@ exit
    yq --version
 
    # コンテナ + 開発補助
+   bwrap --version
    docker --version
    docker compose version
    just --version

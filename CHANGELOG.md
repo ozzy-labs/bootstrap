@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ubuntu 26.04 (Resolute Raccoon) readiness**: canary workflow verifies the toolchain against the next LTS dev snapshot. Added a 3-stage fallback for `wslu` (apt → PPA → graceful warning) so 26.04 users can install without `wslu` blocking the whole setup (#39).
 - **PR auto-labeler** (#46): PRs touching install / test paths receive the `ci:integration` label automatically so integration tests run without manual tagging.
 - **Canary duplicate-issue prevention** (#46): repeated canary failures on the same day comment on the existing issue instead of creating duplicates.
+- `bubblewrap` added to the Ubuntu/Debian container / sandbox tool set via apt.
 
 ### Removed
 

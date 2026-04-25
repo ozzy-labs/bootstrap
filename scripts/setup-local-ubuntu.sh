@@ -1,5 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2088  # チルダはログメッセージ内の表示用であり、パス展開は不要
+# shellcheck disable=SC2016  # シェル設定に遅延展開させる文字列をそのまま書き込む
+# shellcheck disable=SC1091  # /etc/os-release は実行環境で提供される
 set -e
 
 # ========================================
@@ -16,8 +18,8 @@ INSTALL_GIT_TOOLS="${INSTALL_GIT_TOOLS:-1}"     # Git, GitHub CLI, gitleaks
 INSTALL_NODE="${INSTALL_NODE:-1}"     # mise + Node.js LTS + pnpm
 INSTALL_PYTHON="${INSTALL_PYTHON:-1}" # mise + Python + uv
 
-# コンテナツール
-INSTALL_CONTAINER="${INSTALL_CONTAINER:-1}" # Docker, Docker Compose
+# コンテナ / サンドボックスツール
+INSTALL_CONTAINER="${INSTALL_CONTAINER:-1}" # Docker, Docker Compose, bubblewrap
 
 # クラウドツール（個別選択可能、Azure/GCP は opt-in）
 INSTALL_AWS_CLI="${INSTALL_AWS_CLI:-1}"       # AWS CLI (デフォルト ON)
@@ -155,7 +157,7 @@ setup_docker_repository() {
 # 3. Git/バージョン管理ツール（git, gh）
 # 4. mise + 言語環境（Node.js + pnpm + Python + uv を mise で統一管理）
 # 5. Git セキュリティツール（gitleaks、mise に依存）
-# 6. コンテナツール（Dev Container開発の中核）
+# 6. コンテナ / サンドボックスツール（Dev Container開発の中核）
 # 7. クラウドツール（unzipに依存）
 # 8. AIエージェント CLI（Claude Code/Copilot CLIはcurlに依存、Codex/Gemini CLIはnpmに依存）
 # 9. AI パワーツール（markitdown は uv 依存、ast-grep/yq は mise 依存）
@@ -434,12 +436,21 @@ mise_use_global() {
   fi
 }
 
-# 6. コンテナツールのインストール
+# 6. コンテナ / サンドボックスツールのインストール
 install_container_tools() {
   [ "$INSTALL_CONTAINER" != "1" ] && return
 
   echo ""
-  echo "🐳 コンテナツールをインストール中..."
+  echo "🐳 コンテナ / サンドボックスツールをインストール中..."
+
+  # bubblewrap のインストール・アップデート
+  if ! command -v bwrap &>/dev/null; then
+    sudo apt-get install -y bubblewrap
+    echo "  ✅ bubblewrap インストール完了"
+  else
+    sudo apt-get install -y --only-upgrade bubblewrap >/dev/null 2>&1
+    echo "  ⏭️  bubblewrap は最新版です"
+  fi
 
   # Docker のインストール・アップデート
   if ! command -v docker &>/dev/null; then
@@ -473,7 +484,7 @@ install_container_tools() {
     echo "  ⏭️  既にdockerグループに所属しています"
   fi
 
-  echo "✅ コンテナツールインストール完了"
+  echo "✅ コンテナ / サンドボックスツールインストール完了"
 }
 
 # 7. クラウドツールのインストール
@@ -831,7 +842,7 @@ echo "  🔧 ビルドツール - build-essential"
 echo "  🔧 Git関連ツール - Git, GitHub CLI, gitleaks"
 echo "  📦 Node.js環境 - mise, Node.js LTS, pnpm"
 echo "  🐍 Python環境 - mise, Python, uv"
-echo "  🐳 コンテナツール - Docker Engine, Docker Compose"
+echo "  🐳 コンテナ / サンドボックスツール - Docker Engine, Docker Compose, bubblewrap"
 echo "  ☁️ クラウドツール - AWS CLI (default) / Azure CLI, Google Cloud CLI (opt-in)"
 echo "  🤖 AIエージェント CLI - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI"
 echo "  🧠 AIパワーツール - markitdown, tesseract-ocr, ffmpeg, ast-grep, yq"
@@ -883,8 +894,8 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_PYTHON=0
 
-  # コンテナツール
-  _prompt_default_yes "🐳 コンテナツール (Docker, Docker Compose) をインストールしますか? [Y/n]: "
+  # コンテナ / サンドボックスツール
+  _prompt_default_yes "🐳 コンテナ / サンドボックスツール (Docker, Docker Compose, bubblewrap) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_CONTAINER=0
 
@@ -966,7 +977,7 @@ echo "🔧 Git ユーザー情報の確認..."
 if ! git config --global user.name &>/dev/null || [ -z "$(git config --global user.name)" ]; then
   echo ""
   echo "📝 Git ユーザー名が未設定です"
-  read -e -p "Git ユーザー名を入力してください（例: Taro Yamada）: " -i "$USER" git_user_name
+  read -r -e -p "Git ユーザー名を入力してください（例: Taro Yamada）: " -i "$USER" git_user_name
   echo "ℹ️  入力値: $git_user_name" # ログに記録
   # 空白文字のみの入力をチェック
   if [ -n "$git_user_name" ] && [ -n "${git_user_name// /}" ]; then
@@ -983,7 +994,7 @@ fi
 if ! git config --global user.email &>/dev/null || [ -z "$(git config --global user.email)" ]; then
   echo ""
   echo "📝 Git メールアドレスが未設定です"
-  read -e -p "Git メールアドレスを入力してください（例: your.email@example.com）: " git_user_email
+  read -r -e -p "Git メールアドレスを入力してください（例: your.email@example.com）: " git_user_email
   echo "ℹ️  入力値: $git_user_email" # ログに記録
   if [ -n "$git_user_email" ]; then
     # 基本的なメールアドレス形式のバリデーション
@@ -1170,7 +1181,7 @@ echo "✅ 依存パッケージインストール完了"
 # ========================================
 # 注意: 依存関係の順序で実行されます
 # 1. ビルド → 2. 基本CLI → 3. Git (git, gh) → 4. mise + 言語環境
-# → 5. Git セキュリティ (gitleaks) → 6. コンテナ → 7. クラウド → 8. AIエージェント
+# → 5. Git セキュリティ (gitleaks) → 6. コンテナ / サンドボックス → 7. クラウド → 8. AIエージェント
 # → 9. AI パワーツール → 10. 開発補助
 
 # 1. ビルドツールのインストール
@@ -1188,7 +1199,7 @@ install_mise_and_languages
 # 5. Git セキュリティツール（gitleaks、mise 経由）
 install_git_security_tools
 
-# 6. コンテナツールのインストール
+# 6. コンテナ / サンドボックスツールのインストール
 install_container_tools
 
 # 7. クラウドツールのインストール
@@ -1347,7 +1358,8 @@ echo "  🐍 Python エコシステム:"
 echo "    Python:         $(python3 --version 2>/dev/null || echo '未インストール')"
 echo "    uv:             $(uv --version 2>/dev/null | head -n1 || echo '未インストール')"
 echo ""
-echo "  🐳 コンテナツール:"
+echo "  🐳 コンテナ / サンドボックスツール:"
+echo "    bubblewrap:     $(bwrap --version 2>/dev/null || echo '未インストール')"
 echo "    Docker:         $(docker --version 2>/dev/null || echo '未インストール')"
 echo "    Docker Compose: $(docker compose version 2>/dev/null || echo '未インストール')"
 echo ""

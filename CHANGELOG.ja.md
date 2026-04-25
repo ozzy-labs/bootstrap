@@ -31,6 +31,7 @@
 - **Ubuntu 26.04 Resolute Raccoon 対応**: Canary で次期 LTS 開発版に対する検証を継続。`wslu` が 26.04 の標準リポジトリから外れている問題に 3 段フォールバック（apt → PPA → 警告出して継続）を実装済み（#39）
 - **PR 自動ラベリング**（#46）: install/test 系パスを変更した PR に `ci:integration` ラベルを自動付与、手動タグ付け漏れによる統合テスト漏れを回避
 - **Canary 重複 Issue 抑止**（#46）: 同日複数失敗時は既存 Open Issue にコメントで再発を記録、重複起票を防止
+- Ubuntu/Debian のコンテナ / サンドボックスツールセットに apt 経由の `bubblewrap` を追加
 
 ### 削除
 

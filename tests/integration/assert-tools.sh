@@ -56,6 +56,12 @@ assert_tool "zoxide" zoxide --version
 assert_tool "shellcheck" shellcheck --version
 
 echo ""
+if [ "${INSTALL_CONTAINER:-1}" = "1" ]; then
+  echo "🐳 Container / sandbox"
+  assert_tool "bubblewrap" bwrap --version
+  echo ""
+fi
+
 echo "📌 Basic CLI"
 assert_tool "tree" tree --version
 assert_tool "fzf" fzf --version
