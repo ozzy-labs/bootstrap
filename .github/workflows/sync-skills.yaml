@@ -72,7 +72,9 @@ jobs:
             cp -r "${skill_dir}" "${DST}/${name}"
           done
           rm -rf .sync-skills
-          if git diff --quiet -- "${DST}"; then
+          # untracked な新規 skill ディレクトリも検出する必要があるため
+          # git diff ではなく git status --porcelain を使う
+          if [[ -z "$(git status --porcelain -- "${DST}")" ]]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to sync."
           else
