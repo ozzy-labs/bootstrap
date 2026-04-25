@@ -12,6 +12,7 @@ bats = "1"
 yamlfmt = "0.21"
 actionlint = "1"
 gitleaks = "8"
+trivy = "0"
 "pipx:mdformat" = "0.7"
 
 # Git hooks & commit conventions
