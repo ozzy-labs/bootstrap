@@ -1,7 +1,7 @@
-# Auto-updated by dev-config sync.sh
+# Auto-updated by commons sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: 6a8bffd
-synced_at: 2026-04-18T06:54:31Z
+commit: 4f6de17bb3894eb2ad5d2f8f90e93dbc9d3b13ad
+synced_at: 2026-04-25T04:30:06Z
 pinned:
   - .devcontainer/Dockerfile
   - .devcontainer/devcontainer.json
