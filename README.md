@@ -48,7 +48,7 @@ bootstrap/
 
 - 🤖 **AI Agent CLIs** - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI (choose individually)
 - 🧠 **AI Power Tools** - markitdown (PDF/Office → Markdown), tesseract-ocr (+jpn), ffmpeg, ast-grep (structural code search), yq
-- 🐳 **Container Development** - Docker Engine + Docker Compose (essential for Dev Containers)
+- 🐳 **Container / Sandbox Foundation** - Docker Engine + Docker Compose (essential for Dev Containers) + bubblewrap
 - ⚡ **Unified Version Manager** - mise manages Node.js LTS / pnpm / Python / uv / gitleaks / shellcheck / ast-grep / yq
 - 🐍 **Python Ecosystem** - mise-managed Python + uv for packages/venvs/CLI tools
 - ☁️ **Cloud CLIs** - AWS CLI v2 (default) / Azure CLI, Google Cloud CLI (opt-in)
@@ -240,7 +240,8 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
    - **GitHub CLI** - GitHub operations
    - **gitleaks** (via mise) - Modern secret scanner; wire into project-level lefthook / pre-commit hooks
    - **Git basic config** - user.name, user.email, core.editor, etc.
-7. **Container Tools**
+7. **Container / Sandbox Tools**
+   - **bubblewrap** - Lightweight unprivileged sandboxing primitive used by modern CLI / desktop tooling
    - **Docker Engine** - Container runtime
    - **Docker Compose** - Multi-container management tool (essential for Dev Containers)
    - **Docker service auto-start** - Service startup on WSL2
@@ -359,6 +360,7 @@ exit
    yq --version
 
    # Container + dev utilities
+   bwrap --version
    docker --version
    docker compose version
    just --version
