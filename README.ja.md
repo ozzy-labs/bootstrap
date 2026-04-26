@@ -102,14 +102,14 @@ cd bootstrap
 
 ### 5.1 サポート対象 OS
 
-| OS | スクリプト | 状態 |
+| OS / ディストリビューション | スクリプト | 状態 |
 |---|---|---|
-| **WSL2 / Ubuntu 22.04 LTS** | `setup-local-linux.sh` | ✅ 全 PR / main push で CI 検証 |
-| **WSL2 / Ubuntu 24.04 LTS** | `setup-local-linux.sh` | ✅ 全 PR / main push で CI 検証 |
-| **非 WSL Linux（Ubuntu Server 等）** | `setup-local-linux.sh` | ✅ 週次 canary で `ubuntu-latest` 上の bare-metal インストールを検証 |
-| **macOS（latest）** | `setup-local-macos.sh` | ✅ 週次 canary で `macos-latest` を検証（mise を入口にした軽量フロー） |
-| **Ubuntu 25.10 (Questing Quokka)** | `setup-local-linux.sh` | ✅ 週次 canary（`ubuntu:rolling` Docker タグ） |
-| **Ubuntu 26.04 LTS (Resolute Raccoon)** | `setup-local-linux.sh` | ✅ 週次 canary（`ubuntu:devel` Docker タグ） — 次期 LTS 切替直後から動作 |
+| **Linux (Ubuntu 22.04 LTS)** | \`setup-local-linux.sh\` | ✅ 全 PR / main push で CI 検証 |
+| **Linux (Ubuntu 24.04 LTS)** | \`setup-local-linux.sh\` | ✅ 全 PR / main push で CI 検証 |
+| **Linux (Ubuntu Server 等)** | \`setup-local-linux.sh\` | ✅ 週次 canary で \`ubuntu-latest\` 上の bare-metal インストールを検証 |
+| **macOS (latest)** | \`setup-local-macos.sh\` | ✅ 週次 canary で \`macos-latest\` を検証（mise を入口にした軽量フロー） |
+| **Linux (Ubuntu 25.10)** | \`setup-local-linux.sh\` | ✅ 週次 canary（\`ubuntu:rolling\` Docker タグ） |
+| **Linux (Ubuntu 26.04 LTS)** | \`setup-local-linux.sh\` | ✅ 週次 canary（\`ubuntu:devel\` Docker タグ） — 次期 LTS 切替直後から動作 |
 
 `install.sh` は OS を自動判定し `local` を適切なスクリプト（Linux → `setup-local-linux.sh`、Darwin → `setup-local-macos.sh`）に dispatch します。週次 Canary は `ubuntu:devel` / `ubuntu:rolling` Docker タグ・素の `ubuntu-latest` ランナー（非 WSL Linux）・`macos-latest` の 3 系統で統合 harness を回し、上流破壊的変更を全サポート OS で早期検知します。
 

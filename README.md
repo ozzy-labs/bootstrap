@@ -102,14 +102,14 @@ These scripts are designed to set up a **development host** across multiple oper
 
 ### 5.1 Supported operating systems
 
-| OS | Script | Status |
+| OS / Distribution | Script | Status |
 |---|---|---|
-| **WSL2 / Ubuntu 22.04 LTS** | `setup-local-linux.sh` | ✅ CI-verified every PR / main push |
-| **WSL2 / Ubuntu 24.04 LTS** | `setup-local-linux.sh` | ✅ CI-verified every PR / main push |
-| **Non-WSL Linux (Ubuntu Server etc.)** | `setup-local-linux.sh` | ✅ Canary-verified weekly on `ubuntu-latest` (bare-metal install, no Docker) |
+| **Linux (Ubuntu 22.04 LTS)** | `setup-local-linux.sh` | ✅ CI-verified every PR / main push |
+| **Linux (Ubuntu 24.04 LTS)** | `setup-local-linux.sh` | ✅ CI-verified every PR / main push |
+| **Linux (Ubuntu Server etc.)** | `setup-local-linux.sh` | ✅ Canary-verified weekly on `ubuntu-latest` (bare-metal install, no Docker) |
 | **macOS (latest)** | `setup-local-macos.sh` | ✅ Canary-verified weekly on `macos-latest` (mise-first lightweight flow) |
-| **Ubuntu 25.10 (Questing Quokka)** | `setup-local-linux.sh` | ✅ Canary-verified weekly via `ubuntu:rolling` Docker tag |
-| **Ubuntu 26.04 LTS (Resolute Raccoon)** | `setup-local-linux.sh` | ✅ Canary-verified weekly via `ubuntu:devel` — ready for the next LTS the day it lands |
+| **Linux (Ubuntu 25.10)** | `setup-local-linux.sh` | ✅ Canary-verified weekly via `ubuntu:rolling` Docker tag |
+| **Linux (Ubuntu 26.04 LTS)** | `setup-local-linux.sh` | ✅ Canary-verified weekly via `ubuntu:devel` — ready for the next LTS the day it lands |
 
 `install.sh` auto-detects the OS and dispatches `local` to the matching script (`setup-local-linux.sh` for Linux, `setup-local-macos.sh` for Darwin). The weekly canary runs the full integration harness against `ubuntu:devel` / `ubuntu:rolling` Docker tags, the bare `ubuntu-latest` runner (non-WSL Linux), and `macos-latest`, so upstream breaking changes are caught early on every supported platform.
 

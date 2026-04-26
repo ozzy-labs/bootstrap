@@ -307,7 +307,7 @@ fi
 
 # Ubuntu/Debian系ディストリビューションのチェック
 if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
-  echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション専用です"
+  echo "⚠️  このスクリプトは Ubuntu/Debian 系向けに最適化されています。他 OS では動作保証外です。"
   echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
   _prompt_default_no "続行しますか？ (y/N): "
   echo "ℹ️  ユーザー入力: $REPLY" # ログに記録
