@@ -1,16 +1,7 @@
 # Auto-updated by commons sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: 4f6de17bb3894eb2ad5d2f8f90e93dbc9d3b13ad
-synced_at: 2026-04-25T04:30:06Z
-# Auto-updated by Renovate (extends github>ozzy-labs/skills//skills-sync/<adapter>)
-skills_commit: c600d8621e46dd1435133d5498a63f96776fdeed
-# Adapter outputs consumed from ozzy-labs/skills (see ADR-0018).
-# Sync workflow reads this list to decide which dist/{adapter}/ subtrees to copy.
-skills_adapters:
-  - claude-code
-  - codex-cli
-  - gemini-cli
-  - copilot
+commit: a32c498f106b8684e2419ab7861e95e1bbef5445
+synced_at: 2026-04-26T07:19:03Z
 pinned:
   - .devcontainer/Dockerfile
   - .devcontainer/devcontainer.json

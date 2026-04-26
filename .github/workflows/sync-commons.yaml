@@ -4,14 +4,14 @@ name: Sync commons
 #
 # Runs on a weekly schedule (configurable) and on manual dispatch. When
 # the upstream commons repo has changes that are not yet reflected
-# in this repo (per `.commons/sync.yaml` state, minus `pinned`
-# entries), the workflow runs `sync.sh --yes` and opens a pull request
-# with the resulting diff. The PR is never auto-merged; review it.
+# in this repo (per `.commons/sync.yaml`, minus `pinned` entries), the
+# workflow runs `sync.sh --yes` and opens a pull request with the
+# resulting diff. The PR is never auto-merged; review it.
 #
 # Prerequisites in the consumer repo:
 #   - Workflow permissions must allow creating PRs (usually set by
 #     commons/setup-repo.sh)
-#   - `.commons/sync.yaml` exists (created on first manual sync.sh run)
+#   - `.commons/sync.yaml` exists (created on first manual sync.sh run).
 on:
   schedule:
     # Every Monday 00:00 UTC
