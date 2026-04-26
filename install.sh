@@ -23,9 +23,9 @@ Usage:
   curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>]
 
 Commands:
-  zsh     Run scripts/setup-zsh-ubuntu.sh (Linux/WSL only; macOS skips with a notice)
+  zsh     Run scripts/setup-zsh-linux.sh (Linux/WSL only; macOS skips with a notice)
   local   Run the host setup script for the detected OS
-            - Linux  → scripts/setup-local-ubuntu.sh
+            - Linux  → scripts/setup-local-linux.sh
             - macOS  → scripts/setup-local-macos.sh
   all     Run zsh setup (when supported) + local setup in order (default)
   update  Run scripts/update-tools.sh (batch-update mise/uv/npm managed tools)
@@ -82,7 +82,7 @@ local_setup_script_for_os() {
   local os
   os="$(detect_os)"
   case "$os" in
-  linux) printf '%s/scripts/setup-local-ubuntu.sh' "$base_dir" ;;
+  linux) printf '%s/scripts/setup-local-linux.sh' "$base_dir" ;;
   darwin) printf '%s/scripts/setup-local-macos.sh' "$base_dir" ;;
   *) die "Unsupported OS: $(uname -s) (only Linux and macOS are supported)" ;;
   esac
@@ -94,10 +94,10 @@ run_zsh_setup_if_supported() {
   os="$(detect_os)"
   if [ "$os" = "darwin" ]; then
     log ""
-    log "ℹ️  Skipping setup-zsh-ubuntu.sh on macOS (use the system zsh; oh-my-zsh can be installed manually if desired)."
+    log "ℹ️  Skipping setup-zsh-linux.sh on macOS (use the system zsh; oh-my-zsh can be installed manually if desired)."
     return 0
   fi
-  run_script "$base_dir/scripts/setup-zsh-ubuntu.sh"
+  run_script "$base_dir/scripts/setup-zsh-linux.sh"
 }
 
 run_local() {

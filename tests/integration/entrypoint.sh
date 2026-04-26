@@ -86,7 +86,7 @@ printf '━━━━━━━━━━━━━━━━━━━━━━━━
 # pipe 経由の実行を明示的に踏ませて回帰を防ぐ:
 #   1. install.sh の EXIT trap が `local tmp_dir` を遅延展開し、
 #      set -u 下で unbound variable で死ぬ
-#   2. setup-zsh-ubuntu.sh の `read -p` が pipe 越し EOF + set -e で
+#   2. setup-zsh-linux.sh の `read -p` が pipe 越し EOF + set -e で
 #      入力プロンプト到達と同時に終了する
 
 # --- 1. install.sh の EXIT trap が pipe 経由でも安全に発火することを確認 ---
@@ -103,35 +103,35 @@ if grep -qE "unbound variable" "$PIPE_INSTALL_LOG"; then
 fi
 echo "✅ install.sh EXIT trap is safe under pipe execution"
 
-# --- 2. setup-zsh-ubuntu.sh が pipe 経由でも完走することを確認 ---
+# --- 2. setup-zsh-linux.sh が pipe 経由でも完走することを確認 ---
 # CI=true により非対話モードで実行され、対話プロンプトはすべて既定値で
 # 自動回答される。read -p が EOF で失敗していれば set -e で即死する。
 PIPE_ZSH_LOG="/tmp/pipe-zsh.log"
-if ! cat /workspace/scripts/setup-zsh-ubuntu.sh | bash >"$PIPE_ZSH_LOG" 2>&1; then
-  echo "❌ setup-zsh-ubuntu.sh failed under pipe execution. Log:"
+if ! cat /workspace/scripts/setup-zsh-linux.sh | bash >"$PIPE_ZSH_LOG" 2>&1; then
+  echo "❌ setup-zsh-linux.sh failed under pipe execution. Log:"
   cat "$PIPE_ZSH_LOG"
   exit 1
 fi
 if grep -qE "unbound variable" "$PIPE_ZSH_LOG"; then
-  echo "❌ setup-zsh-ubuntu.sh emitted 'unbound variable' under pipe execution"
+  echo "❌ setup-zsh-linux.sh emitted 'unbound variable' under pipe execution"
   exit 1
 fi
-echo "✅ setup-zsh-ubuntu.sh completes under pipe execution"
+echo "✅ setup-zsh-linux.sh completes under pipe execution"
 
-# --- 3. setup-local-ubuntu.sh が pipe 経由でも完走することを確認 ---
+# --- 3. setup-local-linux.sh が pipe 経由でも完走することを確認 ---
 # CI=true により非対話モードで実行される。pipe 経由実行で stdin が EOF で
 # あっても、/dev/tty フォールバックまたは _is_non_interactive 分岐により
 # プロンプトが安全に処理されることを確認する。
 PIPE_LOCAL_LOG="/tmp/pipe-local.log"
-if ! cat /workspace/scripts/setup-local-ubuntu.sh | bash >"$PIPE_LOCAL_LOG" 2>&1; then
-  echo "❌ setup-local-ubuntu.sh failed under pipe execution. Log tail:"
+if ! cat /workspace/scripts/setup-local-linux.sh | bash >"$PIPE_LOCAL_LOG" 2>&1; then
+  echo "❌ setup-local-linux.sh failed under pipe execution. Log tail:"
   tail -50 "$PIPE_LOCAL_LOG"
   exit 1
 fi
 if grep -qE "unbound variable" "$PIPE_LOCAL_LOG"; then
-  echo "❌ setup-local-ubuntu.sh emitted 'unbound variable' under pipe execution"
+  echo "❌ setup-local-linux.sh emitted 'unbound variable' under pipe execution"
   exit 1
 fi
-echo "✅ setup-local-ubuntu.sh completes under pipe execution"
+echo "✅ setup-local-linux.sh completes under pipe execution"
 
 printf '\n✅ Integration test passed (both runs completed, no shell config duplication, pipe-mode OK)\n'

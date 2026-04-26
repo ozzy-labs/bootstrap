@@ -787,7 +787,7 @@ install_docker_engine_and_compose() {
 if [ -n "$SETUP_LOG" ]; then
   # SETUP_LOG=1 または SETUP_LOG=true の場合はデフォルトパスを使用
   if [ "$SETUP_LOG" = "1" ] || [ "$SETUP_LOG" = "true" ]; then
-    LOG_FILE="$HOME/setup-local-ubuntu-$(date +%Y%m%d-%H%M%S).log"
+    LOG_FILE="$HOME/setup-local-linux-$(date +%Y%m%d-%H%M%S).log"
   else
     LOG_FILE="$SETUP_LOG"
   fi
@@ -798,7 +798,7 @@ if [ -n "$SETUP_LOG" ]; then
   echo "ℹ️  ログを $LOG_FILE に記録します"
 fi
 
-echo "🚀 Ubuntu/Debian ローカル環境セットアップ開始（WSL2 / 非 WSL の両対応）"
+echo "🚀 Linux (Ubuntu/Debian-based) ローカル環境セットアップ開始"
 echo ""
 
 # ========================================
@@ -813,7 +813,7 @@ fi
 
 # Ubuntu/Debian系ディストリビューションのチェック
 if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
-  echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション用です"
+  echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション専用です"
   echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
   _prompt_default_no "続行しますか？ (y/N): "
   echo

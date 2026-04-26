@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Ubuntu/Debian系 zsh + oh-my-zsh + プラグインセットアップスクリプト
+# Linux (Ubuntu/Debian-based) zsh + oh-my-zsh + プラグインセットアップスクリプト
 
 # ========================================
 # グローバル変数（インストール対象フラグ）
@@ -281,7 +281,7 @@ change_default_shell() {
 if [ -n "$SETUP_LOG" ]; then
   # SETUP_LOG=1 または SETUP_LOG=true の場合はデフォルトパスを使用
   if [ "$SETUP_LOG" = "1" ] || [ "$SETUP_LOG" = "true" ]; then
-    LOG_FILE="$HOME/setup-zsh-ubuntu-$(date +%Y%m%d-%H%M%S).log"
+    LOG_FILE="$HOME/setup-zsh-linux-$(date +%Y%m%d-%H%M%S).log"
   else
     LOG_FILE="$SETUP_LOG"
   fi
@@ -292,7 +292,7 @@ if [ -n "$SETUP_LOG" ]; then
   echo "ℹ️  ログを $LOG_FILE に記録します"
 fi
 
-echo "🚀 zsh + oh-my-zsh セットアップ開始"
+echo "🚀 Linux (Ubuntu/Debian-based) zsh + oh-my-zsh セットアップ開始"
 echo ""
 
 # ========================================
@@ -307,7 +307,7 @@ fi
 
 # Ubuntu/Debian系ディストリビューションのチェック
 if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
-  echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション用です"
+  echo "⚠️  このスクリプトは Ubuntu/Debian 系ディストリビューション専用です"
   echo "ℹ️  現在の OS: $(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)"
   _prompt_default_no "続行しますか？ (y/N): "
   echo "ℹ️  ユーザー入力: $REPLY" # ログに記録
@@ -467,7 +467,7 @@ echo "1. ターミナルを完全に閉じて再ログイン:"
 echo "   exit"
 echo ""
 echo "2. 開発環境のセットアップを実行:"
-echo "   ./scripts/setup-local-ubuntu.sh"
+echo "   ./scripts/setup-local-linux.sh"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

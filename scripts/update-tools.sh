@@ -3,7 +3,7 @@
 # update-tools.sh
 # -----------------------------------------------------------------------
 # mise / uv tool / npm グローバル経由で導入済みツールを一括更新する。
-# setup-local-ubuntu.sh のハイブリッドメンテ方針を踏襲:
+# setup-local-linux.sh のハイブリッドメンテ方針を踏襲:
 #   - mise: mise self-update + mise upgrade
 #   - uv tool: uv tool upgrade --all（markitdown 等）
 #   - npm global: AI エージェント CLI（Codex / Gemini）

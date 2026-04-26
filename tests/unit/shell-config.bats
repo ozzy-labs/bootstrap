@@ -2,7 +2,7 @@
 # =======================================================================
 # tests/unit/shell-config.bats
 # -----------------------------------------------------------------------
-# setup-local-ubuntu.sh 内の add_to_shell_config 関数の冪等性・パターン
+# setup-local-linux.sh 内の add_to_shell_config 関数の冪等性・パターン
 # 検出・エッジケースを検証する。
 #
 # HOME を BATS_TEST_TMPDIR に差し替えて実ホームディレクトリを汚染しない。
@@ -17,9 +17,9 @@ setup() {
   git config --global user.email "test@example.com"
   git config --global user.name "Test User"
 
-  # setup-local-ubuntu.sh の上から関数定義部分までを source してロード
+  # setup-local-linux.sh の上から関数定義部分までを source してロード
   # メイン処理（最下部の実行ブロック）を走らせないよう、関数定義セクションだけを抽出
-  _script="$SCRIPT_ROOT/scripts/setup-local-ubuntu.sh"
+  _script="$SCRIPT_ROOT/scripts/setup-local-linux.sh"
   # 関数定義 & ヘルパーがある範囲を抽出（先頭から「メイン処理開始」コメントまで）
   _extracted="$BATS_TEST_TMPDIR/functions.sh"
   awk '/^# メイン処理開始/ {exit} {print}' "$_script" >"$_extracted"

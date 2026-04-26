@@ -111,7 +111,7 @@ jobs:
             }
 
   # 新規: 非 WSL Linux（Ubuntu Server 等を想定した GitHub Actions の素の ubuntu-latest）
-  # で setup-local-ubuntu.sh を直接実行し、bare-metal インストールが緑であることを検証する。
+  # で setup-local-linux.sh を直接実行し、bare-metal インストールが緑であることを検証する。
   canary-ubuntu-native:
     name: Canary (Ubuntu Server, native install)
     runs-on: ubuntu-latest

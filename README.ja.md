@@ -1,10 +1,10 @@
 # bootstrap
 
-**開発ホストを AI エージェント駆動開発向けにワンコマンド構築 — WSL2 / 非 WSL Ubuntu / macOS、Dev Container / 直接開発の両対応**
+**開発ホストを AI エージェント駆動開発向けにワンコマンド構築 — WSL2 / Linux (Ubuntu/Debian-based) / macOS、Dev Container / 直接開発の両対応**
 
 **[English](README.md) | 日本語**
 
-開発ホスト（WSL2 / 非 WSL の Ubuntu/Debian / macOS）を、モダンな AI エージェント駆動開発の前提が揃った状態にする包括的なセットアップスクリプト集です。**Dev Container 前提（推奨）**でも **直接ホストで開発**でも同じ基盤で動作します。AI エージェント CLI（Claude Code / Codex / Copilot / Gemini）と、エージェントが文書を読み・コードを検索し・構造化データを操作するための AI パワーツール（markitdown / ast-grep / yq / OCR / 音声処理）を標準搭載しています。
+開発ホスト（WSL2 / Linux (Ubuntu/Debian-based) / macOS）を、モダンな AI エージェント駆動開発の前提が揃った状態にする包括的なセットアップスクリプト集です。**Dev Container 前提（推奨）**でも **直接ホストで開発**でも同じ基盤で動作します。AI エージェント CLI（Claude Code / Codex / Copilot / Gemini）と、エージェントが文書を読み・コードを検索し・構造化データを操作するための AI パワーツール（markitdown / ast-grep / yq / OCR / 音声処理）を標準搭載しています。
 
 ## 目次
 
@@ -14,8 +14,8 @@
 - [4. クイックスタート](#4-クイックスタート)
 - [5. 前提条件](#5-前提条件)
 - [6. スクリプト](#6-スクリプト)
-  - [6.1 setup-zsh-ubuntu.sh](#61-setup-zsh-ubuntush)
-  - [6.2 setup-local-ubuntu.sh](#62-setup-local-ubuntush)
+  - [6.1 setup-zsh-linux.sh](#61-setup-zsh-linuxsh)
+  - [6.2 setup-local-linux.sh](#62-setup-local-linuxsh)
   - [6.3 setup-local-macos.sh](#63-setup-local-macossh)
   - [6.4 update-tools.sh](#64-update-toolssh)
 - [7. トラブルシューティング](#7-トラブルシューティング)
@@ -24,7 +24,7 @@
 
 ## 1. リポジトリ背景
 
-- **Dev Container / 直接開発の両方**に対応した、開発ホスト初期化の単一ソース（WSL2 / 非 WSL の Ubuntu/Debian / macOS）。
+- **Dev Container / 直接開発の両方**に対応した、開発ホスト初期化の単一ソース（WSL2 / Linux (Ubuntu/Debian-based) / macOS）。
 - **AI ファースト**: AI エージェント CLI と AI パワーツール（文書変換 / OCR / 構造的コード検索 / YAML / 音声処理）を一級カテゴリとして提供。
 - **mise** を中核にランタイム・CLI ツールを統一管理、Python パッケージは **uv**、Node は Corepack 互換の **pnpm**。
 - 冪等性・詳細ログ・2026 年時点のアクティブなデフォルト（gitleaks / markitdown / ast-grep 等）を重視。
@@ -38,9 +38,9 @@ bootstrap/
 ├── README.md
 ├── README.ja.md
 └── scripts/
-    ├── setup-local-ubuntu.sh       # Ubuntu/Debian（WSL2 + 非 WSL Linux）の包括セットアップ
+    ├── setup-local-linux.sh       # Ubuntu/Debian（WSL2 + 非 WSL Linux）の包括セットアップ
     ├── setup-local-macos.sh        # macOS（mise を入口にした軽量フロー）
-    ├── setup-zsh-ubuntu.sh         # zsh + oh-my-zsh（Ubuntu/Debian）
+    ├── setup-zsh-linux.sh         # zsh + oh-my-zsh（Ubuntu/Debian）
     └── update-tools.sh             # クロス OS の一括更新
 ```
 
@@ -104,14 +104,14 @@ cd bootstrap
 
 | OS | スクリプト | 状態 |
 |---|---|---|
-| **WSL2 / Ubuntu 22.04 LTS** | `setup-local-ubuntu.sh` | ✅ 全 PR / main push で CI 検証 |
-| **WSL2 / Ubuntu 24.04 LTS** | `setup-local-ubuntu.sh` | ✅ 全 PR / main push で CI 検証 |
-| **非 WSL Linux（Ubuntu Server 等）** | `setup-local-ubuntu.sh` | ✅ 週次 canary で `ubuntu-latest` 上の bare-metal インストールを検証 |
+| **WSL2 / Ubuntu 22.04 LTS** | `setup-local-linux.sh` | ✅ 全 PR / main push で CI 検証 |
+| **WSL2 / Ubuntu 24.04 LTS** | `setup-local-linux.sh` | ✅ 全 PR / main push で CI 検証 |
+| **非 WSL Linux（Ubuntu Server 等）** | `setup-local-linux.sh` | ✅ 週次 canary で `ubuntu-latest` 上の bare-metal インストールを検証 |
 | **macOS（latest）** | `setup-local-macos.sh` | ✅ 週次 canary で `macos-latest` を検証（mise を入口にした軽量フロー） |
-| **Ubuntu 25.10 (Questing Quokka)** | `setup-local-ubuntu.sh` | ✅ 週次 canary（`ubuntu:rolling` Docker タグ） |
-| **Ubuntu 26.04 LTS (Resolute Raccoon)** | `setup-local-ubuntu.sh` | ✅ 週次 canary（`ubuntu:devel` Docker タグ） — 次期 LTS 切替直後から動作 |
+| **Ubuntu 25.10 (Questing Quokka)** | `setup-local-linux.sh` | ✅ 週次 canary（`ubuntu:rolling` Docker タグ） |
+| **Ubuntu 26.04 LTS (Resolute Raccoon)** | `setup-local-linux.sh` | ✅ 週次 canary（`ubuntu:devel` Docker タグ） — 次期 LTS 切替直後から動作 |
 
-`install.sh` は OS を自動判定し `local` を適切なスクリプト（Linux → `setup-local-ubuntu.sh`、Darwin → `setup-local-macos.sh`）に dispatch します。週次 Canary は `ubuntu:devel` / `ubuntu:rolling` Docker タグ・素の `ubuntu-latest` ランナー（非 WSL Linux）・`macos-latest` の 3 系統で統合 harness を回し、上流破壊的変更を全サポート OS で早期検知します。
+`install.sh` は OS を自動判定し `local` を適切なスクリプト（Linux → `setup-local-linux.sh`、Darwin → `setup-local-macos.sh`）に dispatch します。週次 Canary は `ubuntu:devel` / `ubuntu:rolling` Docker タグ・素の `ubuntu-latest` ランナー（非 WSL Linux）・`macos-latest` の 3 系統で統合 harness を回し、上流破壊的変更を全サポート OS で早期検知します。
 
 ### 5.2 Dev Container ワークフロー（推奨）
 
@@ -129,11 +129,11 @@ cd bootstrap
 
 ## 6. スクリプト
 
-### 6.1 setup-zsh-ubuntu.sh
+### 6.1 setup-zsh-linux.sh
 
 Ubuntu/Debian 環境（WSL2 + 非 WSL Linux）で zsh + oh-my-zsh + プラグインをセットアップするスクリプトです。macOS では本ステップは自動的にスキップされ、`install.sh zsh` は通知だけ出して正常終了します（macOS は zsh が標準シェル）。
 
-`install.sh` 経由でも、`scripts/setup-zsh-ubuntu.sh` を直接実行しても使えます。
+`install.sh` 経由でも、`scripts/setup-zsh-linux.sh` を直接実行しても使えます。
 
 **6.1.1 インストールされる内容**
 
@@ -172,7 +172,7 @@ curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh
 ./install.sh zsh
 
 # スクリプトを直接実行
-./scripts/setup-zsh-ubuntu.sh
+./scripts/setup-zsh-linux.sh
 
 # ログを記録する場合
 SETUP_LOG=1 ./install.sh zsh
@@ -207,11 +207,11 @@ echo $plugins
 
 ---
 
-### 6.2 setup-local-ubuntu.sh
+### 6.2 setup-local-linux.sh
 
 Ubuntu/Debian 環境（WSL2 + 非 WSL Linux：Ubuntu Server / EC2 / GCE / コンテナ系 VM 等）に必要な開発ツールをインストールする包括的なセットアップスクリプトです。WSL2 専用の `wslu` / `BROWSER=wslview` は意図的に**自動化対象から外し**、必要な場合の手動コマンドはスクリプト内コメントに記載しています。
 
-`install.sh` 経由でも、`scripts/setup-local-ubuntu.sh` を直接実行しても使えます。
+`install.sh` 経由でも、`scripts/setup-local-linux.sh` を直接実行しても使えます。
 
 **6.2.1 インストールされるツール**
 
@@ -296,9 +296,9 @@ curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh
 ./install.sh local
 
 # スクリプトを直接実行
-./scripts/setup-local-ubuntu.sh
+./scripts/setup-local-linux.sh
 
-# ログを記録する場合（デフォルトパス: ~/setup-local-ubuntu-YYYYMMDD-HHMMSS.log）
+# ログを記録する場合（デフォルトパス: ~/setup-local-linux-YYYYMMDD-HHMMSS.log）
 SETUP_LOG=1 ./install.sh local
 
 # カスタムログファイルパスを指定
@@ -445,7 +445,7 @@ exit
 `SETUP_LOG` 環境変数を設定すると、すべての出力がログファイルに記録されます：
 
 ```bash
-# デフォルトパスに記録（~/setup-local-ubuntu-YYYYMMDD-HHMMSS.log）
+# デフォルトパスに記録（~/setup-local-linux-YYYYMMDD-HHMMSS.log）
 SETUP_LOG=1 ./install.sh local
 
 # カスタムパスに記録
@@ -473,7 +473,7 @@ SETUP_LOG=/tmp/setup.log ./install.sh local
 
 ### 6.3 setup-local-macos.sh
 
-`setup-local-ubuntu.sh` の macOS 版。意図的に軽量化しており、**mise を入口にした共通フロー**でランタイム/CLI を導入します。OS 統合（Docker Desktop、認証 UI が必要な AI エージェント CLI、クラウド CLI）は手動セットアップに任せます。
+`setup-local-linux.sh` の macOS 版。意図的に軽量化しており、**mise を入口にした共通フロー**でランタイム/CLI を導入します。OS 統合（Docker Desktop、認証 UI が必要な AI エージェント CLI、クラウド CLI）は手動セットアップに任せます。
 
 **6.3.1 インストールされるツール**
 
@@ -545,7 +545,7 @@ SETUP_LOG=/tmp/update.log ./install.sh update
 
 - 冪等性: 未インストールツールは `⏭️` でスキップ
 - 耐障害性: 個別コマンドの失敗は警告表示のみで、全体処理は継続
-- ログ対応: `setup-local-ubuntu.sh` と同じ `SETUP_LOG` 規約に従う
+- ログ対応: `setup-local-linux.sh` と同じ `SETUP_LOG` 規約に従う
 - クロス OS: Linux（WSL2 / 非 WSL）と macOS で同等に動作
 
 ---

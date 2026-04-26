@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CI=true
 
 # 最小限の前提パッケージ: スクリプトが自力でインストールする前段として必要
-# - git: Git 設定の事前構成のため（最新版は setup-local-ubuntu.sh が PPA から入れ直す）
+# - git: Git 設定の事前構成のため（最新版は setup-local-linux.sh が PPA から入れ直す）
 # - gnupg: add-apt-repository が PPA の GPG 鍵をインポートする際に gpg-agent を必要とする。
 #   ubuntu:22.04 の minimal イメージには未同梱のため明示的に追加する。
 RUN apt-get update \
@@ -42,7 +42,7 @@ COPY --chown=testuser:testuser . /workspace
 
 USER testuser
 
-# Git の最低限の設定（setup-local-ubuntu.sh の Git 設定プロンプトを回避）
+# Git の最低限の設定（setup-local-linux.sh の Git 設定プロンプトを回避）
 RUN git config --global user.name "Test User" \
     && git config --global user.email "test@example.com"
 

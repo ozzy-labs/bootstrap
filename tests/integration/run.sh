@@ -8,7 +8,7 @@
 #   ./tests/integration/run.sh                 # デフォルト (24.04)
 #   ./tests/integration/run.sh 22.04           # 単一バージョン
 #   ./tests/integration/run.sh 22.04 24.04     # 複数バージョン逐次
-#   ./tests/integration/run.sh devel           # Canary（次期 Ubuntu）
+#   ./tests/integration/run.sh devel           # Canary（次期 Linux リリース）
 # =======================================================================
 set -e
 

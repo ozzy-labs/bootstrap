@@ -5,7 +5,7 @@ set -e
 # ========================================
 # macOS ローカル環境セットアップスクリプト
 # ----------------------------------------
-# Phase 1 Wave 1: setup-local-ubuntu.sh と同じく mise を入口にした
+# Phase 1 Wave 1: setup-local-linux.sh と同じく mise を入口にした
 # 共通フローで開発環境を整える。Linux 側との重複を最小化するため、
 # OS 固有の依存（Homebrew、apt の代替）以外はすべて mise / uv tool に集約する。
 #
@@ -234,7 +234,7 @@ echo ""
 # 1. 環境チェック
 if [ "$(uname -s)" != "Darwin" ]; then
   echo "⚠️  このスクリプトは macOS 専用です（現在の OS: $(uname -s)）"
-  echo "ℹ️  Linux 環境では scripts/setup-local-ubuntu.sh を使用してください"
+  echo "ℹ️  Linux 環境では scripts/setup-local-linux.sh を使用してください"
   exit 1
 fi
 

@@ -6,7 +6,7 @@
   - changed-files:
       - any-glob-to-any-file:
           - install.sh
-          - scripts/setup-local-ubuntu.sh
+          - scripts/setup-local-linux.sh
           - tests/integration/**
           - tests/smoke/**
           - .github/workflows/test-integration.yaml

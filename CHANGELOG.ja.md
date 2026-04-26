@@ -49,7 +49,7 @@
 
 ### 追加
 
-- Zsh環境セットアップスクリプト（`setup-zsh-ubuntu.sh`）
+- Zsh環境セットアップスクリプト（`setup-zsh-linux.sh`）
   - zsh本体のインストール
   - oh-my-zshフレームワークのインストール
   - zshプラグインのインストール
@@ -58,7 +58,7 @@
     - zsh-history-substring-search（履歴検索の強化）
     - zsh-syntax-highlighting（シンタックスハイライト）
   - デフォルトシェルの変更
-- WSL2/Ubuntu 環境セットアップスクリプト（`setup-local-ubuntu.sh`）
+- WSL2/Ubuntu 環境セットアップスクリプト（`setup-local-linux.sh`）
   - システム設定（Locale/Timezone、devcontainerマウント用ディレクトリ）
   - ビルドツール（build-essential）
   - 基本CLIツール（tree, fzf, jq, ripgrep, fd, unzip, wslu）
