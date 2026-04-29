@@ -88,5 +88,9 @@ install_ai_tools() {
     _mise_at_home reshim >/dev/null 2>&1 || true
   fi
 
-  [ "$any_installed" = "1" ] && echo "✅ AIツールインストール完了"
+  # 末尾は明示的に if/then を使う（`[ X ] && echo` は any_installed=0 のとき
+  # exit 1 を返し set -e でスクリプト全体を落とす）。
+  if [ "$any_installed" = "1" ]; then
+    echo "✅ AIツールインストール完了"
+  fi
 }

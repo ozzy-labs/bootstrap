@@ -82,5 +82,10 @@ install_cloud_tools() {
     fi
   fi
 
-  [ "$any_installed" = "1" ] && echo "✅ クラウドツールインストール完了"
+  # NOTE: 末尾を `[ X = "1" ] && echo` にすると any_installed=0 のとき
+  # 関数が exit 1 を返し、set -e でスクリプト全体が落ちる（canary や全クラウド
+  # CLI 無効化シナリオで再現）。明示的に if/then を使う。
+  if [ "$any_installed" = "1" ]; then
+    echo "✅ クラウドツールインストール完了"
+  fi
 }
