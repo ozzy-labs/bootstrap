@@ -42,6 +42,9 @@ INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}" # just, zoxide, shellcheck, chezmoi
 # グローバル変数（実行時に設定される値）
 # ========================================
 
+# スクリプトのディレクトリ（dotfiles 等の相対パス指定に使用）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # mise バイナリのパス
 MISE_BIN="$HOME/.local/bin/mise"
 
@@ -738,6 +741,23 @@ if [ -d ~/.zshrc.d ]; then
   done
   unset file
 fi' "~/.zshrc に ~/.zshrc.d/ の読み込み設定を追加しました"
+
+  # chezmoi による設定適用（ADR-0003）
+  # SCRIPT_DIR は scripts/ ディレクトリなので、1つ上がプロジェクトルート
+  local repo_root
+  repo_root="$(dirname "$SCRIPT_DIR")"
+  if [ -d "$repo_root/dotfiles" ]; then
+    echo ""
+    echo "🏠 chezmoi で推奨設定を適用中..."
+    # --force: 既存ファイルを上書き（chezmoi は内部でバックアップを保持する）
+    # --source: リポジトリ内の dotfiles ディレクトリを指定
+    if _is_non_interactive; then
+      _mise_at_home exec chezmoi -- chezmoi apply --force --source "$repo_root/dotfiles"
+    else
+      _mise_at_home exec chezmoi -- chezmoi apply --interactive --source "$repo_root/dotfiles"
+    fi
+    echo "  ✅ chezmoi による設定適用完了"
+  fi
 
   echo "✅ 開発補助ツールインストール完了"
 }
