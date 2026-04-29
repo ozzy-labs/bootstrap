@@ -1,10 +1,8 @@
 # Auto-updated by commons sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: a32c498f106b8684e2419ab7861e95e1bbef5445
-synced_at: 2026-04-26T07:19:03Z
-# Auto-updated by Renovate
+commit: 346a41e4fa30713a49c7f6e3c6cadf212db06949
+synced_at: 2026-04-27T00:42:47Z
 skills_commit: 4d35fa3683789c8b4a8633bf6aa5bf8e5e7bc230
-# Adapters opted in for @ozzylabs/skills sync (per ADR-0018 / handbook#68).
 skills_adapters:
   - claude-code
   - codex-cli
