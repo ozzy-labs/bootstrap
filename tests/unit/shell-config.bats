@@ -3,8 +3,9 @@
 # =======================================================================
 # tests/unit/shell-config.bats
 # -----------------------------------------------------------------------
-# setup-local-linux.sh 内の add_to_shell_config 関数の冪等性・パターン
-# 検出・エッジケースを検証する。
+# scripts/lib/shell_config.sh と scripts/lib/detect.sh の関数を検証する。
+# add_to_shell_config の冪等性・パターン検出・エッジケース、および
+# _is_non_interactive の環境変数判定を確認する。
 #
 # HOME を BATS_TEST_TMPDIR に差し替えて実ホームディレクトリを汚染しない。
 # =======================================================================
@@ -18,14 +19,11 @@ setup() {
   git config --global user.email "test@example.com"
   git config --global user.name "Test User"
 
-  # setup-local-linux.sh の上から関数定義部分までを source してロード
-  # メイン処理（最下部の実行ブロック）を走らせないよう、関数定義セクションだけを抽出
-  _script="$SCRIPT_ROOT/scripts/setup-local-linux.sh"
-  # 関数定義 & ヘルパーがある範囲を抽出（先頭から「メイン処理開始」コメントまで）
-  _extracted="$BATS_TEST_TMPDIR/functions.sh"
-  awk '/^# メイン処理開始/ {exit} {print}' "$_script" >"$_extracted"
-  # shellcheck disable=SC1090
-  source "$_extracted"
+  # 関連 lib を直接 source する（メイン処理を走らせない）
+  # shellcheck disable=SC1091
+  source "$SCRIPT_ROOT/scripts/lib/detect.sh"
+  # shellcheck disable=SC1091
+  source "$SCRIPT_ROOT/scripts/lib/shell_config.sh"
 }
 
 # ------------------------------------------------------------------
