@@ -24,6 +24,14 @@ assert_tool() {
     PASS=$((PASS + 1))
   else
     printf '  ❌ %-14s (command failed: %s)\n' "$name:" "$*"
+    # 失敗時は最初の数行のエラー出力と shim/install ディレクトリの状態をデバッグ表示
+    printf '     stderr: %s\n' "$(printf '%s' "$output" | head -n3 | tr '\n' '|')"
+    if [ -n "${1:-}" ]; then
+      local cmd="$1"
+      printf '     which: %s\n' "$(command -v "$cmd" || echo 'NOT_IN_PATH')"
+      printf '     mise which: %s\n' "$(mise which "$cmd" 2>&1 | head -n1)"
+      printf '     install dir: %s\n' "$(ls "$HOME/.local/share/mise/installs/$cmd"/*/ 2>/dev/null | head -n5 | tr '\n' ' ' || echo 'no install dir')"
+    fi
     FAIL=$((FAIL + 1))
   fi
 }
