@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2016
 # =======================================================================
 # tests/unit/shell-config.bats
 # -----------------------------------------------------------------------
@@ -173,4 +174,32 @@ export BAR=2'
   grep -q "^# comment$" "$HOME/.bashrc"
   grep -q "^export FOO=1$" "$HOME/.bashrc"
   grep -q "^export BAR=2$" "$HOME/.bashrc"
+}
+
+# ------------------------------------------------------------------
+# ~/.zshrc.d/ 方式の検証
+# ------------------------------------------------------------------
+
+@test "add_to_shell_config: ~/.zshrc.d/ sourcing logic is idempotent" {
+  touch "$HOME/.zshrc"
+  # setup-local-linux.sh 内で使っている実際の呼び出しをシミュレート
+  local content='# OzzyLabs 推奨設定の読み込み（~/.zshrc.d/*.zsh）
+if [ -d ~/.zshrc.d ]; then
+  for file in ~/.zshrc.d/*.zsh; do
+    [ -r "$file" ] && source "$file"
+  done
+  unset file
+fi'
+
+  # 1回目
+  run add_to_shell_config "$HOME/.zshrc" "zshrc.d" "$content" "zshrc.d"
+  [ "$status" -eq 0 ]
+  grep -q "zshrc.d" "$HOME/.zshrc"
+
+  # 2回目（冪等性の確認）
+  run add_to_shell_config "$HOME/.zshrc" "zshrc.d" "$content" "zshrc.d"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"既に設定済み"* ]]
+  # このブロック自体に zshrc.d が3回含まれるため、1回分の注入で 3 ヒットする
+  [ "$(grep -c "zshrc.d" "$HOME/.zshrc")" -eq 3 ]
 }

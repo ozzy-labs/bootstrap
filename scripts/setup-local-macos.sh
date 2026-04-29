@@ -1,5 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2088  # チルダはログメッセージ内の表示用であり、パス展開は不要
+# shellcheck disable=SC2016  # シェル設定に遅延展開させる文字列をそのまま書き込む
 set -e
 
 # ========================================
@@ -25,7 +26,7 @@ set -e
 INSTALL_MISE_LANGUAGES="${INSTALL_MISE_LANGUAGES:-1}" # node + pnpm + python + uv
 INSTALL_GIT_TOOLS="${INSTALL_GIT_TOOLS:-1}"           # gitleaks（mise 経由）
 INSTALL_AI_POWER_TOOLS="${INSTALL_AI_POWER_TOOLS:-1}" # ast-grep, yq, markitdown
-INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}"           # just, zoxide, shellcheck
+INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}"           # just, zoxide, shellcheck, chezmoi
 
 MISE_BIN="$HOME/.local/bin/mise"
 
@@ -196,7 +197,7 @@ install_ai_power_tools() {
   fi
 }
 
-# 開発補助ツール: just / zoxide / shellcheck（mise）
+# 開発補助ツール: just / zoxide / shellcheck / chezmoi（mise）
 install_dev_tools() {
   [ "$INSTALL_DEV_TOOLS" != "1" ] && return
 
@@ -207,10 +208,22 @@ install_dev_tools() {
   mise_use_global "just@latest" "just"
   mise_use_global "zoxide@latest" "zoxide"
   mise_use_global "shellcheck@latest" "shellcheck"
+  mise_use_global "chezmoi@latest" "chezmoi"
 
   add_to_shell_config "$HOME/.zshrc" "zoxide init zsh" 'eval "$(zoxide init zsh)"' "~/.zshrc に zoxide 初期化を追加しました"
   add_to_shell_config "$HOME/.bash_profile" "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bash_profile に zoxide 初期化を追加しました"
   add_to_shell_config "$HOME/.bashrc" "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
+
+  # ~/.zshrc.d/ 方式のセットアップ
+  echo "📁 ~/.zshrc.d/ を準備中..."
+  mkdir -p ~/.zshrc.d
+  add_to_shell_config "$HOME/.zshrc" "zshrc.d" '# OzzyLabs 推奨設定の読み込み（~/.zshrc.d/*.zsh）
+if [ -d ~/.zshrc.d ]; then
+  for file in ~/.zshrc.d/*.zsh; do
+    [ -r "$file" ] && source "$file"
+  done
+  unset file
+fi' "~/.zshrc に ~/.zshrc.d/ の読み込み設定を追加しました"
 }
 
 # ========================================
@@ -282,6 +295,7 @@ echo "🛠️ 開発補助ツール:"
 echo "  just:           $(_mise_at_home exec just -- just --version 2>/dev/null || echo '未インストール')"
 echo "  zoxide:         $(_mise_at_home exec zoxide -- zoxide --version 2>/dev/null || echo '未インストール')"
 echo "  shellcheck:     $(_mise_at_home exec shellcheck -- shellcheck --version 2>/dev/null | awk '/^version:/{print $2}' || echo '未インストール')"
+echo "  chezmoi:        $(_mise_at_home exec chezmoi -- chezmoi --version 2>/dev/null || echo '未インストール')"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

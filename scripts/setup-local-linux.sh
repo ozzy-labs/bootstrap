@@ -36,7 +36,7 @@ INSTALL_GEMINI_CLI="${INSTALL_GEMINI_CLI:-1}"   # Gemini CLI
 INSTALL_AI_POWER_TOOLS="${INSTALL_AI_POWER_TOOLS:-1}" # markitdown, tesseract-ocr(+jpn), ffmpeg, ast-grep, yq
 
 # 開発補助ツール
-INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}" # just, zoxide, shellcheck
+INSTALL_DEV_TOOLS="${INSTALL_DEV_TOOLS:-1}" # just, zoxide, shellcheck, chezmoi
 
 # ========================================
 # グローバル変数（実行時に設定される値）
@@ -717,15 +717,27 @@ install_dev_tools() {
 
   ensure_mise_installed || return 1
 
-  # just / zoxide / shellcheck をすべて mise 経由で導入
+  # just / zoxide / shellcheck / chezmoi をすべて mise 経由で導入
   # （公式インストーラは GitHub API レートリミットで詰まりやすいため mise に統一）
   mise_use_global "just@latest" "just"
   mise_use_global "zoxide@latest" "zoxide"
   mise_use_global "shellcheck@latest" "shellcheck"
+  mise_use_global "chezmoi@latest" "chezmoi"
 
   # zoxide のシェル初期化を追加（初回のみ）
   add_to_shell_config ~/.bashrc "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
   add_to_shell_config ~/.zshrc "zoxide init zsh" 'eval "$(zoxide init zsh)"' "~/.zshrc に zoxide 初期化を追加しました"
+
+  # ~/.zshrc.d/ 方式のセットアップ
+  echo "📁 ~/.zshrc.d/ を準備中..."
+  mkdir -p ~/.zshrc.d
+  add_to_shell_config ~/.zshrc "zshrc.d" '# OzzyLabs 推奨設定の読み込み（~/.zshrc.d/*.zsh）
+if [ -d ~/.zshrc.d ]; then
+  for file in ~/.zshrc.d/*.zsh; do
+    [ -r "$file" ] && source "$file"
+  done
+  unset file
+fi' "~/.zshrc に ~/.zshrc.d/ の読み込み設定を追加しました"
 
   echo "✅ 開発補助ツールインストール完了"
 }
@@ -846,7 +858,7 @@ echo "  🐳 コンテナ / サンドボックスツール - Docker Engine, Dock
 echo "  ☁️ クラウドツール - AWS CLI (default) / Azure CLI, Google Cloud CLI (opt-in)"
 echo "  🤖 AIエージェント CLI - Claude Code, Codex CLI, GitHub Copilot CLI, Gemini CLI"
 echo "  🧠 AIパワーツール - markitdown, tesseract-ocr, ffmpeg, ast-grep, yq"
-echo "  🛠️ 開発補助ツール - just, zoxide, shellcheck"
+echo "  🛠️ 開発補助ツール - just, zoxide, shellcheck, chezmoi"
 echo ""
 echo "すべてのツールをインストールしますか？"
 echo "  y: すべてインストール（デフォルト）"
@@ -941,7 +953,7 @@ if [[ ! $INSTALL_ALL =~ ^[Yy]?$ ]]; then
 
   # 開発補助ツール
   echo ""
-  _prompt_default_yes "🛠️ 開発補助ツール (just, zoxide, shellcheck) をインストールしますか? [Y/n]: "
+  _prompt_default_yes "🛠️ 開発補助ツール (just, zoxide, shellcheck, chezmoi) をインストールしますか? [Y/n]: "
   echo ""
   [[ $REPLY =~ ^[Nn]$ ]] && INSTALL_DEV_TOOLS=0
 fi
@@ -1385,8 +1397,10 @@ echo "  🛠️ 開発補助ツール:"
 echo "    just:           $(just --version 2>/dev/null || echo '未インストール')"
 echo "    zoxide:         $(zoxide --version 2>/dev/null || echo '未インストール')"
 echo "    shellcheck:     $(shellcheck --version 2>/dev/null | awk '/^version:/{print $2}' || echo '未インストール')"
+echo "    chezmoi:        $(chezmoi --version 2>/dev/null || echo '未インストール')"
 
 echo ""
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 echo ""

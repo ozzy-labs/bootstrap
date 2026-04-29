@@ -19,8 +19,8 @@ detect_os() {
 usage() {
   cat <<'EOF'
 Usage:
-  ./install.sh [zsh|local|all|update] [--ref <git-ref>]
-  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>]
+  ./install.sh [zsh|local|all|update] [--ref <git-ref>] [--auto|--interactive]
+  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>] [--auto|--interactive]
 
 Commands:
   zsh     Run scripts/setup-zsh-linux.sh (Linux/WSL only; macOS skips with a notice)
@@ -32,6 +32,8 @@ Commands:
 
 Options:
   --ref <git-ref>  Download scripts from the specified branch, tag, or commit
+  -y, --auto       Apply recommended settings without prompts (non-interactive)
+  --interactive    Confirm settings interactively (default)
   -h, --help       Show this help message
 
 Environment:
@@ -137,6 +139,12 @@ main() {
       [ "$#" -ge 2 ] || die "--ref requires a value"
       ref="$2"
       shift
+      ;;
+    -y | --auto)
+      export BOOTSTRAP_ASSUME_YES=1
+      ;;
+    --interactive)
+      export BOOTSTRAP_ASSUME_YES=0
       ;;
     -h | --help)
       usage
