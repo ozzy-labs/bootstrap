@@ -26,3 +26,7 @@ mise exec -- lefthook run pre-commit --all-files
 ```
 
 プロジェクト固有の検証は [AGENTS.md](../AGENTS.md) の「検証」セクションを参照。
+
+<!-- begin: @ozzylabs/skills -->
+<!-- このブロックは Sync skills ワークフローが自動同期する。手動編集禁止。 -->
+<!-- end: @ozzylabs/skills -->
