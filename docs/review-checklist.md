@@ -91,7 +91,7 @@
 - [ ] 関連ドキュメントの更新が必要か確認
   - [ ] README.md: ドキュメント一覧の更新
   - [ ] CLAUDE.md: ルールやリンクの追加
-  - [ ] CHANGELOG.md: 変更履歴の記録
+  - [ ] CHANGELOG.md は手動更新不要（release-please が Conventional Commits から自動生成）
 - [ ] 他の機能やワークフローへの影響がないか確認
   - [ ] プロジェクトの他の機能やワークフロー
 - [ ] 既存のテンプレートやコマンドが正しく動作するか
@@ -172,9 +172,9 @@
   - [ ] 既存機能への影響確認
   - [ ] その他のテスト項目
 - [ ] ドキュメントが最新
-  - [ ] CHANGELOG.md に変更が記録されている
   - [ ] README.md が更新されている（必要な場合）
   - [ ] 関連ドキュメントが更新されている
+  - [ ] CHANGELOG.md は release-please による自動生成（Conventional Commits を遵守すれば自動反映）
 - [ ] コミットメッセージが適切
   - [ ] Conventional Commits に従っている（`type: subject`）
   - [ ] 日本語で記述されている

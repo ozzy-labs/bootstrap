@@ -94,7 +94,7 @@ printf '━━━━━━━━━━━━━━━━━━━━━━━━
 # unbound variable で死んでいないことだけを検証する（set -u 違反の検出）。
 PIPE_INSTALL_LOG="/tmp/pipe-install.log"
 cat /workspace/install.sh |
-  WSL_DEV_SETUP_REF="non-existent-ref-for-trap-regression-$$" bash -s -- local \
+  BOOTSTRAP_REF="non-existent-ref-for-trap-regression-$$" bash -s -- local \
     >"$PIPE_INSTALL_LOG" 2>&1 || true
 if grep -qE "unbound variable" "$PIPE_INSTALL_LOG"; then
   echo "❌ install.sh emitted 'unbound variable' under pipe execution:"

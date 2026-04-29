@@ -32,27 +32,20 @@ setup() {
 
 @test "_is_non_interactive: returns true when BOOTSTRAP_ASSUME_YES=1" {
   BOOTSTRAP_ASSUME_YES=1
-  unset WSL_DEV_SETUP_ASSUME_YES CI
-  run _is_non_interactive
-  [ "$status" -eq 0 ]
-}
-
-@test "_is_non_interactive: returns true when legacy WSL_DEV_SETUP_ASSUME_YES=1 (backward compat)" {
-  unset BOOTSTRAP_ASSUME_YES CI
-  WSL_DEV_SETUP_ASSUME_YES=1
+  unset CI
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns true when CI=true" {
-  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES
+  unset BOOTSTRAP_ASSUME_YES
   CI=true
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns false when neither env is set" {
-  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES CI
+  unset BOOTSTRAP_ASSUME_YES CI
   run _is_non_interactive
   [ "$status" -ne 0 ]
 }
@@ -60,8 +53,6 @@ setup() {
 @test "_is_non_interactive: returns false for other values" {
   # shellcheck disable=SC2034  # 変数は sourced 関数経由で参照される
   BOOTSTRAP_ASSUME_YES=0
-  # shellcheck disable=SC2034
-  WSL_DEV_SETUP_ASSUME_YES=0
   # shellcheck disable=SC2034
   CI=false
   run _is_non_interactive

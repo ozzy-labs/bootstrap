@@ -95,7 +95,7 @@
 
 **4. 影響評価**:
 
-- 関連ドキュメントの更新が必要か（README.md, CLAUDE.md, CHANGELOG.md等）
+- 関連ドキュメントの更新が必要か（README.md, CLAUDE.md 等。CHANGELOG.md は release-please による自動生成）
 - 他の機能やワークフローへの影響はないか
 - 既存のテンプレートやコマンドが正しく動作するか
 
@@ -148,7 +148,7 @@
 **2. 品質保証**:
 
 - PR テンプレートのテストプラン項目がすべて完了しているか
-- ドキュメントが最新か（CHANGELOG.md, README.md等）
+- ドキュメントが最新か（README.md 等。CHANGELOG.md は Conventional Commits を遵守していれば自動更新される）
 - コミットメッセージが適切か
 
 **3. Git状態**:

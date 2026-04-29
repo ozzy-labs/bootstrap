@@ -3,9 +3,7 @@ set -euo pipefail
 
 readonly REPO_OWNER="ozzy-labs"
 readonly REPO_NAME="bootstrap"
-# BOOTSTRAP_REF is the canonical name; WSL_DEV_SETUP_REF is kept as a legacy alias
-# so users still on the old curl|bash invocation continue to work.
-readonly DEFAULT_REF="${BOOTSTRAP_REF:-${WSL_DEV_SETUP_REF:-main}}"
+readonly DEFAULT_REF="${BOOTSTRAP_REF:-main}"
 
 # OS 判定: install.sh local / all が dispatch 先のスクリプトを切り替えるために使う
 detect_os() {
@@ -39,7 +37,6 @@ Options:
 
 Environment:
   BOOTSTRAP_REF      Default git ref to download when running remotely
-  WSL_DEV_SETUP_REF  Legacy alias for BOOTSTRAP_REF (still honored)
   SETUP_LOG          Passed through to the underlying setup/update script(s)
 EOF
 }
