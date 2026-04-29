@@ -7,6 +7,6 @@ based on Conventional Commits. Manual edits made directly to this file will be
 overwritten on the next release. To influence the next release, write
 Conventional Commits in your PR titles / commit messages.
 
-The pre-release-please history is preserved in
-[CHANGELOG.legacy.md](./CHANGELOG.legacy.md) (English) and
-[CHANGELOG.legacy.ja.md](./CHANGELOG.legacy.ja.md) (Japanese).
+The full pre-v0.1.0 history is preserved in the [git log](https://github.com/ozzy-labs/bootstrap/commits/main)
+and the v0.1.0 release notes (which include every Conventional Commit since
+the project's first commit).

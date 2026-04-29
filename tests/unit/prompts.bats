@@ -24,7 +24,7 @@ setup() {
 
 @test "_prompt_default_yes: sets REPLY=Y and prints suffix in non-interactive mode" {
   CI=true
-  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES
+  unset BOOTSTRAP_ASSUME_YES
   REPLY=""
   _prompt_default_yes "Continue? [Y/n]: " >"$OUT_FILE"
   [ "$REPLY" = "Y" ]
@@ -33,7 +33,7 @@ setup() {
 
 @test "_prompt_default_yes: respects BOOTSTRAP_ASSUME_YES=1" {
   BOOTSTRAP_ASSUME_YES=1
-  unset CI WSL_DEV_SETUP_ASSUME_YES
+  unset CI
   REPLY=""
   _prompt_default_yes "Continue? [Y/n]: " >"$OUT_FILE"
   [ "$REPLY" = "Y" ]
@@ -46,16 +46,16 @@ setup() {
 
 @test "_prompt_default_no: sets REPLY=N and prints suffix in non-interactive mode" {
   CI=true
-  unset BOOTSTRAP_ASSUME_YES WSL_DEV_SETUP_ASSUME_YES
+  unset BOOTSTRAP_ASSUME_YES
   REPLY=""
   _prompt_default_no "Continue? [y/N]: " >"$OUT_FILE"
   [ "$REPLY" = "N" ]
   grep -q "N (non-interactive)" "$OUT_FILE"
 }
 
-@test "_prompt_default_no: respects legacy WSL_DEV_SETUP_ASSUME_YES=1" {
-  WSL_DEV_SETUP_ASSUME_YES=1
-  unset BOOTSTRAP_ASSUME_YES CI
+@test "_prompt_default_no: respects BOOTSTRAP_ASSUME_YES=1" {
+  BOOTSTRAP_ASSUME_YES=1
+  unset CI
   REPLY=""
   _prompt_default_no "Continue? [y/N]: " >"$OUT_FILE"
   [ "$REPLY" = "N" ]

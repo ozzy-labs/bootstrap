@@ -18,10 +18,9 @@ INSTALL_HISTORY_SUBSTRING_SEARCH=1
 # ========================================
 
 # 非対話モードかどうかを判定
-# BOOTSTRAP_ASSUME_YES=1（旧名 WSL_DEV_SETUP_ASSUME_YES も後方互換で受理）
-# または CI=true でプロンプトを自動回答する
+# BOOTSTRAP_ASSUME_YES=1 または CI=true でプロンプトを自動回答する
 _is_non_interactive() {
-  [ "${BOOTSTRAP_ASSUME_YES:-${WSL_DEV_SETUP_ASSUME_YES:-0}}" = "1" ] || [ "${CI:-}" = "true" ]
+  [ "${BOOTSTRAP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
 }
 
 # パイプ実行時 (curl ... | bash) でも対話プロンプトが動作するよう、

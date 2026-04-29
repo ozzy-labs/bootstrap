@@ -778,4 +778,4 @@ cat /home/user/setup-local-ubuntu-20250109-123456.log
 
 ## 9. 変更履歴
 
-プロジェクトの変更履歴の詳細は [CHANGELOG.ja.md](CHANGELOG.ja.md) を参照してください。
+プロジェクトの変更履歴は [CHANGELOG.md](CHANGELOG.md) で自動管理されています（[release-please](https://github.com/googleapis/release-please) が Conventional Commits から生成）。各リリースの詳細は [GitHub Releases](https://github.com/ozzy-labs/bootstrap/releases) を参照してください。

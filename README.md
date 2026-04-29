@@ -777,4 +777,4 @@ For detailed review process, see:
 
 ## 9. Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes to this project.
+The changelog is auto-managed in [CHANGELOG.md](CHANGELOG.md) by [release-please](https://github.com/googleapis/release-please) from Conventional Commits. Per-release details are published on [GitHub Releases](https://github.com/ozzy-labs/bootstrap/releases).
