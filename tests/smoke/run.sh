@@ -87,7 +87,7 @@ assert_stdout_contains "install.sh --help prints Usage" \
   bash install.sh --help
 
 assert_stdout_contains "install.sh --help lists subcommands" \
-  "zsh|local|all|update" \
+  "zsh|local|all|update|doctor" \
   bash install.sh --help
 
 assert_failure "install.sh rejects unknown flag" \
@@ -139,6 +139,9 @@ assert_success "setup-zsh-linux.sh syntax check" \
 
 assert_success "update-tools.sh syntax check" \
   bash -n scripts/update-tools.sh
+
+assert_success "doctor.sh syntax check" \
+  bash -n scripts/doctor.sh
 
 # ------------------------------------------------------------------
 # サマリー

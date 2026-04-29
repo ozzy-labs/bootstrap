@@ -37,8 +37,12 @@ _prompt_default_no() {
 # stdin が tty でなく /dev/tty が読める場合は /dev/tty にフォールバックする。
 # 非対話モード（CI / ASSUME_YES）ではフォールバックしない。
 # 呼び出し側スクリプト先頭で `_attach_tty_if_needed` を呼ぶ。
+#
+# /dev/tty が device file として存在するが open に失敗するケース（一部の
+# コンテナ / サブシェル）でもスクリプト全体を落とさないよう、exec の失敗を
+# 黙って受け流す。
 _attach_tty_if_needed() {
   if [ ! -t 0 ] && [ -r /dev/tty ] && ! _is_non_interactive; then
-    exec </dev/tty
+    exec </dev/tty 2>/dev/null || true
   fi
 }

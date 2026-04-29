@@ -19,8 +19,8 @@ detect_os() {
 usage() {
   cat <<'EOF'
 Usage:
-  ./install.sh [zsh|local|all|update] [--ref <git-ref>] [--auto|--interactive]
-  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update] [--ref <git-ref>] [--auto|--interactive]
+  ./install.sh [zsh|local|all|update|doctor] [--ref <git-ref>] [--auto|--interactive]
+  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update|doctor] [--ref <git-ref>] [--auto|--interactive]
 
 Commands:
   zsh     Run scripts/setup-zsh-linux.sh (Linux/WSL only; macOS skips with a notice)
@@ -29,6 +29,7 @@ Commands:
             - macOS  → scripts/setup-local-macos.sh
   all     Run zsh setup (when supported) + local setup in order (default)
   update  Run scripts/update-tools.sh (batch-update mise/uv/npm managed tools)
+  doctor  Run scripts/doctor.sh (diagnose environment integrity, exit 0/1/2)
 
 Options:
   --ref <git-ref>  Download scripts from the specified branch, tag, or commit
@@ -120,6 +121,9 @@ run_local() {
   update)
     run_script "$base_dir/scripts/update-tools.sh"
     ;;
+  doctor)
+    run_script "$base_dir/scripts/doctor.sh"
+    ;;
   *)
     die "Unknown command: $target"
     ;;
@@ -132,7 +136,7 @@ main() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    zsh | local | all | update)
+    zsh | local | all | update | doctor)
       target="$1"
       ;;
     --ref)
