@@ -33,13 +33,13 @@ jobs:
       - name: shellcheck
         run: |
           mise exec -- shellcheck --severity=warning \
-            install.sh scripts/*.sh \
+            install.sh scripts/*.sh scripts/lib/*.sh \
             tests/smoke/run.sh tests/integration/*.sh
 
       - name: shfmt
         run: |
           mise exec -- shfmt -d \
-            install.sh scripts/*.sh \
+            install.sh scripts/*.sh scripts/lib/*.sh \
             tests/smoke/run.sh tests/integration/*.sh
 
       - name: markdownlint
