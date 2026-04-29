@@ -6,10 +6,20 @@ always_keep_install = false
 
 [tools]
 # グローバルで常に利用可能にするツール
+#
+# 注意: install_* スクリプトも `mise use --global` を呼ぶが、
+# install_dev_tools 末尾の `chezmoi apply` がこのファイルで global 設定を
+# 上書きするため、グローバルに残すツールはここで明示的に列挙する必要がある。
+# このファイルに無いツールは chezmoi apply 後に config から消える。
 node = "lts"
-pnpm = "latest"
+# pnpm は 10 系に pin。pnpm 11 はリリースアセットの命名規則が変更され、
+# mise の aqua レジストリが追従していないため @latest が解決失敗する。
+pnpm = "10"
 python = "latest"
 uv = "latest"
+gitleaks = "latest"
+ast-grep = "latest"
+yq = "latest"
 chezmoi = "latest"
 just = "latest"
 zoxide = "latest"

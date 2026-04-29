@@ -1,6 +1,3 @@
 [pip]
 universal = true
 generate-hashes = true
-
-[build-system]
-requires = ["setuptools", "wheel"]

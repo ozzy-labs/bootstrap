@@ -158,7 +158,11 @@ install_mise_and_languages() {
   echo ""
   echo "📦 Node.js / pnpm / Python / uv を mise でインストール中..."
   mise_use_global "node@lts" "Node.js LTS"
-  mise_use_global "pnpm@latest" "pnpm"
+  # NOTE: pnpm は 10 系に pin。pnpm 11 でリリースアセットの命名規則が
+  # `pnpm-linux-x64` から `pnpm-linux-x64.tar.gz` に変更されたが、mise の
+  # aqua レジストリが追従しておらず @latest が解決失敗する。aqua-registry
+  # 側の修正が入り次第、@latest に戻す。
+  mise_use_global "pnpm@10" "pnpm"
   mise_use_global "python@latest" "Python"
   mise_use_global "uv@latest" "uv"
   echo "✅ mise + 言語環境インストール完了"
