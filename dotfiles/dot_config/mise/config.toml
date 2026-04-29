@@ -1,0 +1,16 @@
+[settings]
+experimental = true
+plugin_autoupdate_last_check_duration = "7d"
+always_keep_download = false
+always_keep_install = false
+
+[tools]
+# グローバルで常に利用可能にするツール
+node = "lts"
+pnpm = "latest"
+python = "latest"
+uv = "latest"
+chezmoi = "latest"
+just = "latest"
+zoxide = "latest"
+shellcheck = "latest"

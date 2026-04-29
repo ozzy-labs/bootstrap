@@ -4,6 +4,8 @@ node = "24"
 pnpm = "10"
 
 # Linters & formatters
+biome = "latest"
+taplo = "latest"
 shellcheck = "0.11"
 shfmt = "3"
 bats = "1"

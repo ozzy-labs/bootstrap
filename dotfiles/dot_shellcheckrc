@@ -1,0 +1,3 @@
+# Global Shellcheck configuration
+disable=SC2088,SC2016
+shell=bash
