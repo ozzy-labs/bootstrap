@@ -14,6 +14,15 @@ export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.local/share/p
 PASS=0
 FAIL=0
 
+# Debug: print mise's global config so we can see what was actually persisted.
+echo "=== mise global config ($HOME/.config/mise/config.toml) ==="
+cat "$HOME/.config/mise/config.toml" 2>/dev/null || echo "(missing)"
+echo "=== mise ls --global ==="
+(cd "$HOME" && mise ls --global 2>&1) | head -30
+echo "=== /workspace/.mise.toml ==="
+cat /workspace/.mise.toml 2>/dev/null | head -20
+echo "===="
+
 # $1: ツール名（表示用）, $2...: バージョン取得コマンド
 assert_tool() {
   local name="$1"
