@@ -14,25 +14,6 @@ export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.local/share/p
 PASS=0
 FAIL=0
 
-# Debug: print mise's global config so we can see what was actually persisted.
-echo "=== mise --version ==="
-mise --version 2>&1
-echo "=== mise global config ($HOME/.config/mise/config.toml) ==="
-if [ -f "$HOME/.config/mise/config.toml" ]; then
-  cat "$HOME/.config/mise/config.toml"
-else
-  echo "(does not exist)"
-fi
-echo "=== mise config (resolved view from \$HOME) ==="
-(cd "$HOME" && mise config 2>&1) | head -10
-echo "=== mise ls --global from \$HOME ==="
-(cd "$HOME" && mise ls --global 2>&1) | head -30
-echo "=== ls -la $HOME/.config/mise/ ==="
-ls -la "$HOME/.config/mise/" 2>&1 || echo "(no dir)"
-echo "=== /workspace/.mise.toml head ==="
-head -10 /workspace/.mise.toml 2>/dev/null || echo "(missing)"
-echo "===="
-
 # $1: ツール名（表示用）, $2...: バージョン取得コマンド
 assert_tool() {
   local name="$1"
@@ -43,14 +24,6 @@ assert_tool() {
     PASS=$((PASS + 1))
   else
     printf '  ❌ %-14s (command failed: %s)\n' "$name:" "$*"
-    # 失敗時は最初の数行のエラー出力と shim/install ディレクトリの状態をデバッグ表示
-    printf '     stderr: %s\n' "$(printf '%s' "$output" | head -n3 | tr '\n' '|')"
-    if [ -n "${1:-}" ]; then
-      local cmd="$1"
-      printf '     which: %s\n' "$(command -v "$cmd" || echo 'NOT_IN_PATH')"
-      printf '     mise which: %s\n' "$(mise which "$cmd" 2>&1 | head -n1)"
-      printf '     install dir: %s\n' "$(ls "$HOME/.local/share/mise/installs/$cmd"/*/ 2>/dev/null | head -n5 | tr '\n' ' ' || echo 'no install dir')"
-    fi
     FAIL=$((FAIL + 1))
   fi
 }
