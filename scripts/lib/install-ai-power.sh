@@ -50,5 +50,11 @@ install_ai_power_tools() {
     echo "ℹ️  対処法: Python 環境（mise + uv）を有効にして再実行してください"
   fi
 
+  # ast-grep / yq の mise auto-shim が失敗するケースが観測されているため
+  # （非標準 archive 構造の aqua 配布物）、明示的に reshim する。
+  if [ -x "$MISE_BIN" ]; then
+    _mise_at_home reshim >/dev/null 2>&1 || true
+  fi
+
   echo "✅ AI パワーツールインストール完了"
 }
