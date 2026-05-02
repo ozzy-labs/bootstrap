@@ -73,67 +73,55 @@ export -f apt-get
 }
 
 # ------------------------------------------------------------------
-# apt_add_repository_with_retry: 1 回目で成功 → リトライしない
+# apt_add_ppa: 正常系 — keyserver からの鍵取得 + sources.list.d への書き込みを行う
 # ------------------------------------------------------------------
 
-@test "apt_add_repository_with_retry: succeeds on first attempt" {
-  run apt_add_repository_with_retry -y ppa:test/ppa
+@test "apt_add_ppa: registers PPA via keyserver and launchpadcontent" {
+  lsb_release() { echo "jammy"; }
+  export -f lsb_release
+
+  curl() {
+    echo "curl $*" >>"$MOCK_LOG"
+    return 0
+  }
+  export -f curl
+
+  run apt_add_ppa "git-core" "ppa" "DEADBEEFCAFEBABE" "git-core"
   [ "$status" -eq 0 ]
-  local count
-  count=$(grep -c "sudo add-apt-repository" "$MOCK_LOG")
-  [ "$count" -eq 1 ]
+  grep -q "curl.*keyserver.ubuntu.com.*0xDEADBEEFCAFEBABE" "$MOCK_LOG"
+  grep -q "sudo gpg --dearmor -o /usr/share/keyrings/git-core.gpg" "$MOCK_LOG"
+  grep -q "sudo tee /etc/apt/sources.list.d/git-core.list" "$MOCK_LOG"
+  grep -q "sudo chmod go+r /usr/share/keyrings/git-core.gpg" "$MOCK_LOG"
 }
 
 # ------------------------------------------------------------------
-# apt_add_repository_with_retry: 失敗 → リトライして成功
+# apt_add_ppa: codename 取得失敗 → 非 0
 # ------------------------------------------------------------------
 
-@test "apt_add_repository_with_retry: retries on failure and eventually succeeds" {
-  export MOCK_FAILS_LEFT=2
-  sudo() {
-    echo "sudo $*" >>"$MOCK_LOG"
-    if [ "$1" = "add-apt-repository" ] && [ "${MOCK_FAILS_LEFT:-0}" -gt 0 ]; then
-      MOCK_FAILS_LEFT=$((MOCK_FAILS_LEFT - 1))
-      export MOCK_FAILS_LEFT
-      return 1
-    fi
-    return 0
-  }
-  export -f sudo
+@test "apt_add_ppa: fails when lsb_release returns empty codename" {
+  lsb_release() { echo ""; }
+  export -f lsb_release
 
-  # バックオフ待機をスキップしてテストを高速化
-  sleep() { :; }
-  export -f sleep
-
-  run apt_add_repository_with_retry -y ppa:test/ppa
-  [ "$status" -eq 0 ]
-  local count
-  count=$(grep -c "sudo add-apt-repository" "$MOCK_LOG")
-  [ "$count" -eq 3 ]
-  [[ "$output" == *"再試行"* ]]
-}
-
-# ------------------------------------------------------------------
-# apt_add_repository_with_retry: 最大試行回数まで失敗 → 非 0 を返す
-# ------------------------------------------------------------------
-
-@test "apt_add_repository_with_retry: fails after max attempts" {
-  sudo() {
-    echo "sudo $*" >>"$MOCK_LOG"
-    if [ "$1" = "add-apt-repository" ]; then
-      return 1
-    fi
-    return 0
-  }
-  export -f sudo
-
-  sleep() { :; }
-  export -f sleep
-
-  run apt_add_repository_with_retry -y ppa:test/ppa
+  run apt_add_ppa "git-core" "ppa" "DEADBEEF" "git-core"
   [ "$status" -ne 0 ]
-  local count
-  count=$(grep -c "sudo add-apt-repository" "$MOCK_LOG")
-  [ "$count" -eq 3 ]
-  [[ "$output" == *"接続不能"* ]]
+  [[ "$output" == *"codename を取得できません"* ]]
+}
+
+# ------------------------------------------------------------------
+# apt_add_ppa: 鍵取得失敗 → 非 0
+# ------------------------------------------------------------------
+
+@test "apt_add_ppa: fails when key fetch fails" {
+  lsb_release() { echo "jammy"; }
+  export -f lsb_release
+
+  curl() {
+    echo "curl $*" >>"$MOCK_LOG"
+    return 1
+  }
+  export -f curl
+
+  run apt_add_ppa "git-core" "ppa" "DEADBEEF" "git-core"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"取得に失敗"* ]]
 }

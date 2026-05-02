@@ -10,8 +10,9 @@ install_git_tools() {
   echo "🔧 バージョン管理ツールをインストール中..."
 
   # Git公式PPAが既に追加されているかチェック
-  if ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
-    apt_add_repository_with_retry -y ppa:git-core/ppa >/dev/null
+  if [ ! -f /etc/apt/sources.list.d/git-core.list ] &&
+    ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
+    apt_add_ppa "git-core" "ppa" "E1DD270288B4E6030699E45FA1715D88E1DF1F24" "git-core"
     sudo apt-get update >/dev/null
   fi
 

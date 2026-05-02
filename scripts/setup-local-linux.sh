@@ -415,16 +415,14 @@ else
 fi
 
 # git のインストール（最新安定版、後段でも install_git_tools が呼ばれるが
-# add-apt-repository を使うため最低限の git/PPA セットアップを先に行う）
+# 鍵 / source 設定を先に確立しておく）
 echo ""
 echo "🔧 Git（最新安定版）をインストール中..."
 
-if ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
+if [ ! -f /etc/apt/sources.list.d/git-core.list ] &&
+  ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
   echo "  ℹ️  Git公式PPAを追加しています..."
-  if ! command -v add-apt-repository &>/dev/null; then
-    sudo apt-get install -y software-properties-common >/dev/null
-  fi
-  apt_add_repository_with_retry -y ppa:git-core/ppa >/dev/null
+  apt_add_ppa "git-core" "ppa" "E1DD270288B4E6030699E45FA1715D88E1DF1F24" "git-core"
   sudo apt-get update >/dev/null
   echo "  ✅ Git公式PPAを追加しました"
 fi
