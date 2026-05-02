@@ -11,7 +11,7 @@ install_git_tools() {
 
   # Git公式PPAが既に追加されているかチェック
   if ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
-    sudo add-apt-repository -y ppa:git-core/ppa >/dev/null
+    apt_add_repository_with_retry -y ppa:git-core/ppa >/dev/null
     sudo apt-get update >/dev/null
   fi
 

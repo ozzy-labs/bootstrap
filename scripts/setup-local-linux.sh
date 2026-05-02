@@ -424,7 +424,7 @@ if ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 
   if ! command -v add-apt-repository &>/dev/null; then
     sudo apt-get install -y software-properties-common >/dev/null
   fi
-  sudo add-apt-repository -y ppa:git-core/ppa >/dev/null
+  apt_add_repository_with_retry -y ppa:git-core/ppa >/dev/null
   sudo apt-get update >/dev/null
   echo "  ✅ Git公式PPAを追加しました"
 fi
