@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/ozzy-labs/bootstrap/compare/v0.1.0...v0.1.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **lint:** exclude CHANGELOG.md from markdownlint ([#104](https://github.com/ozzy-labs/bootstrap/issues/104)) ([f2b5e12](https://github.com/ozzy-labs/bootstrap/commit/f2b5e12ac5a2fa7302fb02986455f6e1966f2be6))
+
+
+### Documentation
+
+* **rules:** clarify fix vs ci commit type boundary ([#106](https://github.com/ozzy-labs/bootstrap/issues/106)) ([8be60ee](https://github.com/ozzy-labs/bootstrap/commit/8be60ee2941acd522ae0440547219b1dda7119e0))
+
 ## 0.1.0 (2026-04-29)
 
 
