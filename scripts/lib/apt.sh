@@ -32,7 +32,7 @@ apt_install_or_upgrade() {
 #
 # $1: PPA owner（例: git-core）
 # $2: PPA name（例: ppa）
-# $3: GPG key fingerprint（40 桁 16 進、例: E1DD270288B4E6030699E45FA1715D88E1DF1F24）
+# $3: GPG key fingerprint（40 桁 16 進、例: F911AB184317630C59970973E363C90F8F1B6217）
 # $4: keyring / list の basename（例: git-core）
 #
 # 戻り値: 0 = 成功、非 0 = 失敗
