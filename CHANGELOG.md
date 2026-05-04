@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.3](https://github.com/ozzy-labs/bootstrap/compare/v0.1.2...v0.1.3) (2026-05-04)
+
+
+### Bug Fixes
+
+* **install:** apply git-core/ppa 4096R fingerprint in setup-local-linux too ([#117](https://github.com/ozzy-labs/bootstrap/issues/117)) ([fbf3c4f](https://github.com/ozzy-labs/bootstrap/commit/fbf3c4f03a2257354bb95c1a6adcac99c662bcbc))
+* **install:** bump git-core/ppa key fingerprint to 4096R rotation ([#112](https://github.com/ozzy-labs/bootstrap/issues/112)) ([36135e2](https://github.com/ozzy-labs/bootstrap/commit/36135e2c3305947c3215b5269528231caa5f181e)), closes [#110](https://github.com/ozzy-labs/bootstrap/issues/110) [#111](https://github.com/ozzy-labs/bootstrap/issues/111)
+
+
+### Documentation
+
+* **apt:** update apt_add_ppa fingerprint example to 4096R rotation key ([#114](https://github.com/ozzy-labs/bootstrap/issues/114)) ([b96de26](https://github.com/ozzy-labs/bootstrap/commit/b96de26065ffdc12b2fc7fff23a65924b71d22af))
+
 ## [0.1.2](https://github.com/ozzy-labs/bootstrap/compare/v0.1.1...v0.1.2) (2026-05-02)
 
 
