@@ -422,7 +422,7 @@ echo "🔧 Git（最新安定版）をインストール中..."
 if [ ! -f /etc/apt/sources.list.d/git-core.list ] &&
   ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
   echo "  ℹ️  Git公式PPAを追加しています..."
-  apt_add_ppa "git-core" "ppa" "E1DD270288B4E6030699E45FA1715D88E1DF1F24" "git-core"
+  apt_add_ppa "git-core" "ppa" "F911AB184317630C59970973E363C90F8F1B6217" "git-core"
   sudo apt-get update >/dev/null
   echo "  ✅ Git公式PPAを追加しました"
 fi
