@@ -1,3 +1,4 @@
+<!-- begin: ozzy-labs/commons -->
 # GitHub Copilot Instructions
 
 共通方針は [AGENTS.md](../AGENTS.md) を参照してください。
@@ -26,3 +27,8 @@ mise exec -- lefthook run pre-commit --all-files
 ```
 
 プロジェクト固有の検証は [AGENTS.md](../AGENTS.md) の「検証」セクションを参照。
+<!-- end: ozzy-labs/commons -->
+
+<!-- begin: @ozzylabs/skills -->
+
+<!-- end: @ozzylabs/skills -->
