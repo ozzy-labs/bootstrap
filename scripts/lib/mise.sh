@@ -65,7 +65,7 @@ _mise_at_home() {
 }
 
 # mise でグローバルツールを導入する汎用ヘルパー
-# $1: tool_spec（例: node@lts, python@latest, gitleaks@latest）
+# $1: tool_spec（例: node@lts, python@latest, gitleaks@8.30.1, github:astral-sh/uv@0.11.9）
 # $2: display_name（表示名）
 mise_use_global() {
   local tool_spec="$1"

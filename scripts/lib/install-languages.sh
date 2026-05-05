@@ -2,6 +2,14 @@
 # scripts/lib/install-languages.sh
 # mise + 言語環境（Node.js + pnpm + Python + uv）と gitleaks のインストール。
 # 前提: lib/mise.sh が事前に source されていること。
+#
+# バージョン方針:
+# aqua レジストリ経由のツール (pnpm, gitleaks 等) は、上流リリースとレジストリ
+# 追従のずれにより任意の新バージョンが破綻し得るため、すべて具体パッチ版に
+# 明示ピンする。更新は Renovate (mise manager) が自動 PR 化し、CI で検証する。
+# core バックエンド (node, python) は対象外。
+# uv は aqua レジストリの signer_workflow が Immutable Release に追従していない
+# ため github バックエンドに切替済み。
 
 # 4. mise + 言語環境のインストール
 # mise を土台として Node.js / pnpm / Python / uv を統一管理
@@ -18,12 +26,6 @@ install_mise_and_languages() {
     echo ""
     echo "📦 Node.js と pnpm を mise でインストール中..."
     mise_use_global "node@lts" "Node.js LTS"
-    # NOTE: pnpm は 10.33.2 に pin。aqua-registry の pnpm/pnpm registry.yaml は
-    # `<= 10.33.2` を raw asset、`<= 11.0.4` を tar.gz として扱う段階制約で、
-    # 10.33.3 は `<= 10.33.2` を外れて tar.gz 枝に落ちるが pnpm v10 は raw 配布の
-    # ままなので no asset エラーになる。aqua-registry が 10.33.3 を raw 制約に
-    # 含めるよう修正されたら `@10` に戻す。
-    # https://github.com/aquaproj/aqua-registry/blob/main/pkgs/pnpm/pnpm/registry.yaml
     mise_use_global "pnpm@10.33.2" "pnpm"
   fi
 
@@ -32,7 +34,7 @@ install_mise_and_languages() {
     echo ""
     echo "🐍 Python と uv を mise でインストール中..."
     mise_use_global "python@latest" "Python"
-    mise_use_global "uv@latest" "uv"
+    mise_use_global "github:astral-sh/uv@0.11.9" "uv"
   fi
 
   echo "✅ mise + 言語環境インストール完了"
@@ -47,6 +49,6 @@ install_git_security_tools() {
 
   echo ""
   echo "🔒 Git セキュリティツールをインストール中..."
-  mise_use_global "gitleaks@latest" "gitleaks"
+  mise_use_global "gitleaks@8.30.1" "gitleaks"
   echo "✅ Git セキュリティツールインストール完了"
 }

@@ -16,10 +16,10 @@ install_dev_tools() {
 
   # just / zoxide / shellcheck / chezmoi をすべて mise 経由で導入
   # （公式インストーラは GitHub API レートリミットで詰まりやすいため mise に統一）
-  mise_use_global "just@latest" "just"
-  mise_use_global "zoxide@latest" "zoxide"
-  mise_use_global "shellcheck@latest" "shellcheck"
-  mise_use_global "chezmoi@latest" "chezmoi"
+  mise_use_global "just@1.50.0" "just"
+  mise_use_global "zoxide@0.9.9" "zoxide"
+  mise_use_global "shellcheck@0.11.0" "shellcheck"
+  mise_use_global "chezmoi@2.70.2" "chezmoi"
 
   # zoxide のシェル初期化を追加（初回のみ）
   add_to_shell_config ~/.bashrc "zoxide init bash" 'eval "$(zoxide init bash)"' "~/.bashrc に zoxide 初期化を追加しました"
