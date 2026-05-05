@@ -75,11 +75,14 @@ check_mise_managed_tools() {
       doctor_record ok "mise-tools" "$tool は mise 管理下 (current: $installed_version)"
     else
       local recommended
+      # NOTE: aqua レジストリ追従のずれによる破綻を避けるため、aqua バックエンド
+      # 経由のツールは具体パッチ版にピンする。core バックエンド (node, python) は
+      # 例外。バージョンは .mise.toml と同期させる。
       case "$tool" in
       node) recommended="node@lts" ;;
-      pnpm) recommended="pnpm@latest" ;;
+      pnpm) recommended="pnpm@10.33.2" ;;
       python) recommended="python@latest" ;;
-      uv) recommended="uv@latest" ;;
+      uv) recommended="github:astral-sh/uv@0.11.9" ;;
       *) recommended="$tool@latest" ;;
       esac
       doctor_record warn "mise-tools" "$tool が mise で管理されていない" \
@@ -92,7 +95,7 @@ check_mise_managed_tools() {
 check_chezmoi_drift() {
   if ! command -v chezmoi &>/dev/null; then
     doctor_record warn "chezmoi" "chezmoi が未インストール（drift 検出スキップ）" \
-      "mise use --global chezmoi@latest"
+      "mise use --global chezmoi@2.70.2"
     return 0
   fi
 

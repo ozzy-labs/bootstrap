@@ -32,8 +32,8 @@ install_ai_power_tools() {
   done
 
   # mise: 横断的な CLI ツール（バージョン固定・一括更新が容易）
-  mise_use_global "ast-grep@latest" "ast-grep"
-  mise_use_global "yq@latest" "yq"
+  mise_use_global "ast-grep@0.42.1" "ast-grep"
+  mise_use_global "yq@4.53.2" "yq"
 
   # uv tool: Python 製 AI 向け文書変換 CLI
   # uv はすでに mise 経由で導入済み想定。念のためコマンド存在確認

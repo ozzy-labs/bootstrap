@@ -1,25 +1,27 @@
+# aqua レジストリ経由のツールは、上流リリースとレジストリ追従のずれにより
+# 任意の新バージョンが破綻し得るため、すべて具体パッチ版に明示ピンする。
+# 更新は Renovate (mise manager) が自動 PR 化し、CI で検証する。
+# core バックエンド（node）は対象外。
 [tools]
-# Runtime & package managers (commitlint に必要)
+# Runtime & package managers
 node = "24"
-# pnpm は 10.33.2 に pin（aqua-registry 段階制約の影響回避）。
-# 詳細: scripts/lib/install-languages.sh
 pnpm = "10.33.2"
 
 # Linters & formatters
-biome = "latest"
-taplo = "latest"
-shellcheck = "0.11"
-shfmt = "3"
-bats = "1"
-chezmoi = "2"
-"npm:markdownlint-cli2" = "0.21"
-"pipx:yamllint" = "1"
-yamlfmt = "0.21"
-actionlint = "1"
-gitleaks = "8"
-"pipx:mdformat" = "0.7"
+biome = "2.4.14"
+taplo = "0.10.0"
+shellcheck = "0.11.0"
+shfmt = "3.13.1"
+bats = "1.13.0"
+chezmoi = "2.70.2"
+"npm:markdownlint-cli2" = "0.22.1"
+"pipx:yamllint" = "1.38.0"
+yamlfmt = "0.21.0"
+actionlint = "1.7.12"
+gitleaks = "8.30.1"
+"pipx:mdformat" = "0.7.22"
 
 # Git hooks & commit conventions
-lefthook = "2"
-"npm:@commitlint/cli" = "20"
-"npm:@commitlint/config-conventional" = "20"
+lefthook = "2.1.6"
+"npm:@commitlint/cli" = "20.5.3"
+"npm:@commitlint/config-conventional" = "20.5.3"

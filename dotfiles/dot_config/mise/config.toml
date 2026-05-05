@@ -4,23 +4,27 @@ plugin_autoupdate_last_check_duration = "7d"
 always_keep_download = false
 always_keep_install = false
 
-[tools]
-# グローバルで常に利用可能にするツール
+# aqua レジストリ経由のツールは、上流リリースとレジストリ追従のずれにより
+# 任意の新バージョンが破綻し得るため、すべて具体パッチ版に明示ピンする。
+# 更新は Renovate (mise manager) が自動 PR 化し、CI で検証する。
+# core バックエンド（node, python）は対象外。
 #
 # 注意: install_* スクリプトも `mise use --global` を呼ぶが、
 # install_dev_tools 末尾の `chezmoi apply` がこのファイルで global 設定を
 # 上書きするため、グローバルに残すツールはここで明示的に列挙する必要がある。
 # このファイルに無いツールは chezmoi apply 後に config から消える。
+[tools]
 node = "lts"
-# pnpm は 10.33.2 に pin。aqua-registry の段階制約で 10.33.3 が誤って
-# tar.gz (v11+) 枝に落ちるため。詳細は scripts/lib/install-languages.sh 参照。
 pnpm = "10.33.2"
 python = "latest"
-uv = "latest"
-gitleaks = "latest"
-ast-grep = "latest"
-yq = "latest"
-chezmoi = "latest"
-just = "latest"
-zoxide = "latest"
-shellcheck = "latest"
+# uv は aqua レジストリの signer_workflow が astral-sh/uv の Immutable Release
+# 移行 (0.11.0+) に追従していないため、github バックエンドに切替えて回避する。
+# https://github.com/aquaproj/aqua-registry/blob/main/pkgs/astral-sh/uv/registry.yaml
+"github:astral-sh/uv" = "0.11.9"
+gitleaks = "8.30.1"
+ast-grep = "0.42.1"
+yq = "4.53.2"
+chezmoi = "2.70.2"
+just = "1.50.0"
+zoxide = "0.9.9"
+shellcheck = "0.11.0"
