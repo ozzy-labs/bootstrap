@@ -12,9 +12,9 @@ always_keep_install = false
 # 上書きするため、グローバルに残すツールはここで明示的に列挙する必要がある。
 # このファイルに無いツールは chezmoi apply 後に config から消える。
 node = "lts"
-# pnpm は 10 系に pin。pnpm 11 はリリースアセットの命名規則が変更され、
-# mise の aqua レジストリが追従していないため @latest が解決失敗する。
-pnpm = "10"
+# pnpm は 10.33.2 に pin。aqua-registry の段階制約で 10.33.3 が誤って
+# tar.gz (v11+) 枝に落ちるため。詳細は scripts/lib/install-languages.sh 参照。
+pnpm = "10.33.2"
 python = "latest"
 uv = "latest"
 gitleaks = "latest"

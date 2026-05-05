@@ -158,11 +158,13 @@ install_mise_and_languages() {
   echo ""
   echo "📦 Node.js / pnpm / Python / uv を mise でインストール中..."
   mise_use_global "node@lts" "Node.js LTS"
-  # NOTE: pnpm は 10 系に pin。pnpm 11 でリリースアセットの命名規則が
-  # `pnpm-linux-x64` から `pnpm-linux-x64.tar.gz` に変更されたが、mise の
-  # aqua レジストリが追従しておらず @latest が解決失敗する。aqua-registry
-  # 側の修正が入り次第、@latest に戻す。
-  mise_use_global "pnpm@10" "pnpm"
+  # NOTE: pnpm は 10.33.2 に pin。aqua-registry の pnpm/pnpm registry.yaml は
+  # `<= 10.33.2` を raw asset、`<= 11.0.4` を tar.gz として扱う段階制約で、
+  # 10.33.3 は `<= 10.33.2` を外れて tar.gz 枝に落ちるが pnpm v10 は raw 配布の
+  # ままなので no asset エラーになる。aqua-registry が 10.33.3 を raw 制約に
+  # 含めるよう修正されたら `@10` に戻す。
+  # https://github.com/aquaproj/aqua-registry/blob/main/pkgs/pnpm/pnpm/registry.yaml
+  mise_use_global "pnpm@10.33.2" "pnpm"
   mise_use_global "python@latest" "Python"
   mise_use_global "uv@latest" "uv"
   echo "✅ mise + 言語環境インストール完了"
