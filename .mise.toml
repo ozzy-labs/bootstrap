@@ -1,7 +1,9 @@
 [tools]
 # Runtime & package managers (commitlint に必要)
 node = "24"
-pnpm = "10"
+# pnpm は 10.33.2 に pin（aqua-registry 段階制約の影響回避）。
+# 詳細: scripts/lib/install-languages.sh
+pnpm = "10.33.2"
 
 # Linters & formatters
 biome = "latest"
