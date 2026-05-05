@@ -1,0 +1,109 @@
+# Claude Code Routine のひな形。
+# 1 ファイル 1 ルーチン。フィールド名は Web UI のフォーム欄と 1:1 で対応する。
+# 正本（source of truth）はこのファイル。Web UI で直接編集せず、変更は必ずここから行う。
+
+# 一行サマリ + 運用メモ。Web UI に対応欄がない情報をここに置く。
+# 1 行目を一行サマリ、空行を挟んで運用メモ・既知の注意点を続ける。
+notes: |
+  <一行サマリ>
+
+  運用上のメモ・既知の注意点があればここに書く。
+
+# Web UI: Name
+name: <routine-name>
+
+# active = Web UI 登録済みで稼働中 / draft = Web UI 未登録（PR レビュー段階など）
+status: draft
+
+# Web UI 登録後に発行される ID（trig_xxxx）。draft の間は空でよい。
+routine_id: ""
+
+# Web UI: Instructions
+# 完全自律実行を前提に self-contained に書く（`AskUserQuestion` は使えない）。
+instructions: |
+  You are running `ROUTINE_NAME` for the `<owner>/<repo>` repository.
+  This is a fully autonomous run — there is no human to answer prompts.
+
+  ## Goal
+
+  (このルーチンが達成すべきゴールを 1〜2 文で記述)
+
+  ## Steps
+
+  1. ステップ 1
+  2. ステップ 2
+  3. ステップ 3
+
+  ## Hard constraints
+
+  - Do NOT use `AskUserQuestion` — the run is autonomous.
+  - Do NOT call MCP servers (`knowledge`, `context7`); they are not configured in the cloud environment.
+  - Do NOT push to `main` directly. Always use a `claude/<scope>/...` branch.
+  - Do NOT amend or force-push.
+  - Do NOT modify files outside the scope of this routine.
+  - Use Conventional Commits with the appropriate `type(scope):` prefix.
+
+# Web UI: Model
+model: claude-sonnet-4-6
+
+# Web UI: Repositories
+repositories:
+  - <owner>/<repo>
+
+# Web UI: Environment
+environment:
+  # Environment セクションのラベル（Web UI 上の表示名）
+  name: <env-name>
+  # trusted / none / open
+  network_access: trusted
+  # 環境変数の名前のみ列挙する。値は絶対に書かない（Web UI 側の secret として登録）。
+  variables: []
+  # Web UI: Setup script。ローカル検証用に
+  # `yq -r '.environment.setup_script' .claude/routines/<name>.yaml | bash` で動く形に保つ。
+  # ターゲット環境は Routines のクラウド VM (Ubuntu)。
+  setup_script: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # 1. mise (polyglot toolchain manager) — installs from .mise.toml
+    curl https://mise.run | sh
+    export PATH="${HOME}/.local/bin:${PATH}"
+    eval "$(mise activate bash)"
+
+    # 2. 言語ツールチェーン一括インストール（Python / Node / その他）
+    mise install
+
+    # 3. gh CLI（PR 操作に使用。Routines のクラウド VM にプリインストールされていない）
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq gh
+
+    # 4. ── project-specific install ──────────────────────────────────
+    #  以下は routine ごとに書き換える領域。対象 repo の依存解決コマンドを書く。
+    #
+    # 例:
+    #   uv sync --frozen                # Python (uv)
+    #   pnpm install --frozen-lockfile  # Node (pnpm)
+    #   bundle install --jobs=4         # Ruby
+
+# Web UI: Trigger（配列。schedule / api / github を将来併用可能）
+triggers:
+  - type: scheduled
+    # 5 フィールドの cron 式（最小実行間隔は 1 時間）
+    cron: "0 23 * * *"
+    # Web UI ではローカル TZ 入力 → 内部で UTC 変換される。記録は UTC 統一。
+    timezone: UTC
+
+# Web UI: Connectors
+# included にする MCP サーバー名のリスト。
+# ローカル stdio MCP（knowledge / context7 等）はクラウドに届かないため空のままが基本。
+connectors: []
+
+# Web UI: Behavior
+behavior:
+  # Auto-fix pull requests
+  auto_fix_pull_requests: false
+
+# Web UI: Permissions
+permissions:
+  # claude/* ブランチ以外への push を許可するか。デフォルト false。
+  allow_unrestricted_git_push: false
