@@ -12,6 +12,8 @@ pinned:
   - .devcontainer/Dockerfile
   - .devcontainer/devcontainer.json
   - .devcontainer/initialize.sh
+  - .github/workflows/pr-check.yaml
+  - .github/workflows/sync-commons.yaml
   - .gitignore
   - .markdownlint-cli2.yaml
   - .mise.toml
