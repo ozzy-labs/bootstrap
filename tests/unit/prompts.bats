@@ -24,16 +24,25 @@ setup() {
 
 @test "_prompt_default_yes: sets REPLY=Y and prints suffix in non-interactive mode" {
   CI=true
-  unset BOOTSTRAP_ASSUME_YES
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES BOOTSTRAP_ASSUME_YES
   REPLY=""
   _prompt_default_yes "Continue? [Y/n]: " >"$OUT_FILE"
   [ "$REPLY" = "Y" ]
   grep -q "Y (non-interactive)" "$OUT_FILE"
 }
 
-@test "_prompt_default_yes: respects BOOTSTRAP_ASSUME_YES=1" {
+@test "_prompt_default_yes: respects AGENTIC_BOOTSTRAP_ASSUME_YES=1" {
+  AGENTIC_BOOTSTRAP_ASSUME_YES=1
+  unset BOOTSTRAP_ASSUME_YES CI
+  REPLY=""
+  _prompt_default_yes "Continue? [Y/n]: " >"$OUT_FILE"
+  [ "$REPLY" = "Y" ]
+  grep -q "Y (non-interactive)" "$OUT_FILE"
+}
+
+@test "_prompt_default_yes: legacy BOOTSTRAP_ASSUME_YES=1 still works (fallback)" {
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES CI
   BOOTSTRAP_ASSUME_YES=1
-  unset CI
   REPLY=""
   _prompt_default_yes "Continue? [Y/n]: " >"$OUT_FILE"
   [ "$REPLY" = "Y" ]
@@ -46,16 +55,24 @@ setup() {
 
 @test "_prompt_default_no: sets REPLY=N and prints suffix in non-interactive mode" {
   CI=true
-  unset BOOTSTRAP_ASSUME_YES
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES BOOTSTRAP_ASSUME_YES
   REPLY=""
   _prompt_default_no "Continue? [y/N]: " >"$OUT_FILE"
   [ "$REPLY" = "N" ]
   grep -q "N (non-interactive)" "$OUT_FILE"
 }
 
-@test "_prompt_default_no: respects BOOTSTRAP_ASSUME_YES=1" {
+@test "_prompt_default_no: respects AGENTIC_BOOTSTRAP_ASSUME_YES=1" {
+  AGENTIC_BOOTSTRAP_ASSUME_YES=1
+  unset BOOTSTRAP_ASSUME_YES CI
+  REPLY=""
+  _prompt_default_no "Continue? [y/N]: " >"$OUT_FILE"
+  [ "$REPLY" = "N" ]
+}
+
+@test "_prompt_default_no: legacy BOOTSTRAP_ASSUME_YES=1 still works (fallback)" {
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES CI
   BOOTSTRAP_ASSUME_YES=1
-  unset CI
   REPLY=""
   _prompt_default_no "Continue? [y/N]: " >"$OUT_FILE"
   [ "$REPLY" = "N" ]

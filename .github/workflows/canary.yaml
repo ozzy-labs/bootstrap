@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      BOOTSTRAP_ASSUME_YES: "1"
+      AGENTIC_BOOTSTRAP_ASSUME_YES: "1"
       CI: "true"
       # コンテナ専用の重量ツールはランナー上では不要なので最小化
       INSTALL_CONTAINER: "0"
@@ -190,7 +190,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     env:
-      BOOTSTRAP_ASSUME_YES: "1"
+      AGENTIC_BOOTSTRAP_ASSUME_YES: "1"
       CI: "true"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

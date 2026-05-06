@@ -18,9 +18,10 @@ INSTALL_HISTORY_SUBSTRING_SEARCH=1
 # ========================================
 
 # 非対話モードかどうかを判定
-# BOOTSTRAP_ASSUME_YES=1 または CI=true でプロンプトを自動回答する
+# AGENTIC_BOOTSTRAP_ASSUME_YES=1（旧名 BOOTSTRAP_ASSUME_YES もフォールバック）
+# または CI=true でプロンプトを自動回答する
 _is_non_interactive() {
-  [ "${BOOTSTRAP_ASSUME_YES:-0}" = "1" ] || [ "${CI:-}" = "true" ]
+  [ "${AGENTIC_BOOTSTRAP_ASSUME_YES:-${BOOTSTRAP_ASSUME_YES:-0}}" = "1" ] || [ "${CI:-}" = "true" ]
 }
 
 # パイプ実行時 (curl ... | bash) でも対話プロンプトが動作するよう、

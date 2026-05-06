@@ -30,31 +30,48 @@ setup() {
 # _is_non_interactive
 # ------------------------------------------------------------------
 
-@test "_is_non_interactive: returns true when BOOTSTRAP_ASSUME_YES=1" {
-  BOOTSTRAP_ASSUME_YES=1
-  unset CI
+@test "_is_non_interactive: returns true when AGENTIC_BOOTSTRAP_ASSUME_YES=1" {
+  AGENTIC_BOOTSTRAP_ASSUME_YES=1
+  unset BOOTSTRAP_ASSUME_YES CI
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns true when CI=true" {
-  unset BOOTSTRAP_ASSUME_YES
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES BOOTSTRAP_ASSUME_YES
   CI=true
   run _is_non_interactive
   [ "$status" -eq 0 ]
 }
 
 @test "_is_non_interactive: returns false when neither env is set" {
-  unset BOOTSTRAP_ASSUME_YES CI
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES BOOTSTRAP_ASSUME_YES CI
   run _is_non_interactive
   [ "$status" -ne 0 ]
 }
 
 @test "_is_non_interactive: returns false for other values" {
   # shellcheck disable=SC2034  # 変数は sourced 関数経由で参照される
-  BOOTSTRAP_ASSUME_YES=0
+  AGENTIC_BOOTSTRAP_ASSUME_YES=0
+  unset BOOTSTRAP_ASSUME_YES
   # shellcheck disable=SC2034
   CI=false
+  run _is_non_interactive
+  [ "$status" -ne 0 ]
+}
+
+@test "_is_non_interactive: legacy BOOTSTRAP_ASSUME_YES=1 still triggers non-interactive (fallback)" {
+  unset AGENTIC_BOOTSTRAP_ASSUME_YES CI
+  BOOTSTRAP_ASSUME_YES=1
+  run _is_non_interactive
+  [ "$status" -eq 0 ]
+}
+
+@test "_is_non_interactive: new name takes precedence over legacy name" {
+  # 新名 0 / 旧名 1 → 新名が優先されて非対話モードにならない
+  AGENTIC_BOOTSTRAP_ASSUME_YES=0
+  BOOTSTRAP_ASSUME_YES=1
+  unset CI
   run _is_non_interactive
   [ "$status" -ne 0 ]
 }
