@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/ozzy-labs/bootstrap/compare/v0.1.3...v0.1.4) (2026-05-06)
+
+
+### Bug Fixes
+
+* **install:** pin pnpm to 10.33.2 to avoid aqua-registry mismatch ([#123](https://github.com/ozzy-labs/bootstrap/issues/123)) ([2f6f0e5](https://github.com/ozzy-labs/bootstrap/commit/2f6f0e520543bd974c4bc270ffcd01aad713ad4f))
+* **lefthook:** unpin base; override via skip+replacement in lefthook.yaml ([#130](https://github.com/ozzy-labs/bootstrap/issues/130)) ([7106f17](https://github.com/ozzy-labs/bootstrap/commit/7106f17b549b8e15fdb95b75f809466f70b654e7))
+
 ## [0.1.3](https://github.com/ozzy-labs/bootstrap/compare/v0.1.2...v0.1.3) (2026-05-04)
 
 
