@@ -554,7 +554,7 @@ macOS counterpart to `setup-local-linux.sh`, intentionally lighter-weight: focus
 ./scripts/setup-local-macos.sh
 
 # Non-interactive (CI / scripted)
-BOOTSTRAP_ASSUME_YES=1 ./scripts/setup-local-macos.sh
+AGENTIC_BOOTSTRAP_ASSUME_YES=1 ./scripts/setup-local-macos.sh
 ```
 
 **6.3.4 Notes**

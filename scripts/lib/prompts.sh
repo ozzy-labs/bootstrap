@@ -1,6 +1,6 @@
 #!/bin/bash
 # scripts/lib/prompts.sh
-# 対話プロンプトヘルパー。非対話モード（CI / BOOTSTRAP_ASSUME_YES）では自動応答する。
+# 対話プロンプトヘルパー。非対話モード（CI / AGENTIC_BOOTSTRAP_ASSUME_YES、旧名 BOOTSTRAP_ASSUME_YES）では自動応答する。
 # このファイルは source して利用する。前提: lib/detect.sh が事前に source されていること。
 
 # [Y/n] プロンプト（既定 Y）を処理し、REPLY に結果を設定する

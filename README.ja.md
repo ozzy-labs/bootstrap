@@ -554,7 +554,7 @@ SETUP_LOG=/tmp/setup.log ./install.sh local
 ./scripts/setup-local-macos.sh
 
 # 非対話モード（CI / スクリプト実行）
-BOOTSTRAP_ASSUME_YES=1 ./scripts/setup-local-macos.sh
+AGENTIC_BOOTSTRAP_ASSUME_YES=1 ./scripts/setup-local-macos.sh
 ```
 
 **6.3.4 注意事項**

@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly REPO_OWNER="ozzy-labs"
 readonly REPO_NAME="agentic-bootstrap"
-readonly DEFAULT_REF="${BOOTSTRAP_REF:-main}"
+readonly DEFAULT_REF="${AGENTIC_BOOTSTRAP_REF:-${BOOTSTRAP_REF:-main}}"
 
 # OS 判定: install.sh local / all が dispatch 先のスクリプトを切り替えるために使う
 detect_os() {
@@ -36,8 +36,9 @@ Options:
   -h, --help       Show this help message
 
 Environment:
-  BOOTSTRAP_REF      Default git ref to download when running remotely
-  SETUP_LOG          Passed through to the underlying setup/update script(s)
+  AGENTIC_BOOTSTRAP_REF  Default git ref to download when running remotely
+                         (legacy: BOOTSTRAP_REF is honored as a fallback)
+  SETUP_LOG              Passed through to the underlying setup/update script(s)
 EOF
 }
 
@@ -142,10 +143,10 @@ main() {
       shift
       ;;
     -y | --auto)
-      export BOOTSTRAP_ASSUME_YES=1
+      export AGENTIC_BOOTSTRAP_ASSUME_YES=1
       ;;
     --interactive)
-      export BOOTSTRAP_ASSUME_YES=0
+      export AGENTIC_BOOTSTRAP_ASSUME_YES=0
       ;;
     -h | --help)
       usage
