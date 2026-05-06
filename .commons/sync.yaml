@@ -1,7 +1,7 @@
 # Auto-updated by commons sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: ac77e891c557659e0e9d1c3f76ad58178691553b
-synced_at: 2026-05-06T08:54:46Z
+commit: 5d2e324b9caa3d8501aa3599ac3ad332f749a28e
+synced_at: 2026-05-06T09:21:40Z
 skills_commit: 4d35fa3683789c8b4a8633bf6aa5bf8e5e7bc230
 skills_adapters:
   - claude-code

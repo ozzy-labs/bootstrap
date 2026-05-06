@@ -9,6 +9,22 @@
 # All commands run via `mise exec --` so hooks succeed even when the calling
 # shell hasn't run `mise activate` (e.g. `bash -c 'git commit ...'`, IDE
 # integrations). See ozzy-labs/commons#117.
+#
+# === Overriding inherited commands ===
+# lefthook 2.1.6's extends merge is base-wins: a same-key command in your
+# lefthook.yaml is silently ignored. To replace a base command, mark it
+# `skip: true` locally and add a replacement under a different key:
+#
+#   pre-commit:
+#     commands:
+#       shell:
+#         run: "true"   # stub — `lefthook validate` requires a string
+#         skip: true    # base's run still wins via merge but skip blocks it
+#       shell-local:
+#         glob: "**/*.sh"
+#         run: <your replacement command>
+#
+# See ozzy-labs/bootstrap#130 for a working example.
 
 glob_matcher: doublestar
 
