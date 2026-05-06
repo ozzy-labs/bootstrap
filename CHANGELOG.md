@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/ozzy-labs/agentic-bootstrap/compare/v0.1.4...v0.2.0) (2026-05-06)
+
+
+### Refactoring
+
+* rename BOOTSTRAP_* env vars to AGENTIC_BOOTSTRAP_* with fallback ([#136](https://github.com/ozzy-labs/agentic-bootstrap/issues/136)) ([69146d6](https://github.com/ozzy-labs/agentic-bootstrap/commit/69146d66f2a4546557fee146a2c40b577a4d7957))
+
 ## [0.1.4](https://github.com/ozzy-labs/bootstrap/compare/v0.1.3...v0.1.4) (2026-05-06)
 
 
