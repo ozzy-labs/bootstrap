@@ -4,12 +4,12 @@
 
 ## ⚠️ `.claude/skills/` とは別物
 
-| 項目         | `.claude/skills/`         | `.claude/routines/` (このディレクトリ)     |
-| ------------ | ------------------------- | ------------------------------------------ |
-| ロード       | Claude Code が auto-load  | **Anthropic クラウド側に手動コピー**       |
-| 実行場所     | ローカル CLI              | Anthropic クラウド VM                      |
-| 自動連携     | あり                      | **なし**（リポは正本のコピー先にすぎない） |
-| シークレット | `.env` から読める         | Web UI 側の secret として別管理            |
+| 項目         | `.claude/skills/`        | `.claude/routines/` (このディレクトリ)     |
+| ------------ | ------------------------ | ------------------------------------------ |
+| ロード       | Claude Code が auto-load | **Anthropic クラウド側に手動コピー**       |
+| 実行場所     | ローカル CLI             | Anthropic クラウド VM                      |
+| 自動連携     | あり                     | **なし**（リポは正本のコピー先にすぎない） |
+| シークレット | `.env` から読める        | Web UI 側の secret として別管理            |
 
 このディレクトリのファイルを編集しても**自動では Web UI に反映されない**。必ず手動で同期する。
 
@@ -26,28 +26,28 @@
 
 ## Web UI 欄 ↔ YAML フィールド対応表
 
-| Web UI 欄                            | YAML フィールド                       |
-| ------------------------------------ | ------------------------------------- |
-| Name                                 | `name`                                |
-| Instructions                         | `instructions`                        |
-| Model                                | `model`                               |
-| Repositories                         | `repositories`                        |
-| Environment > Name                   | `environment.name`                    |
-| Environment > Network access         | `environment.network_access`          |
-| Environment > Environment variables  | `environment.variables`               |
-| Environment > Setup script           | `environment.setup_script`            |
-| Trigger                              | `triggers`                            |
-| Connectors                           | `connectors`                          |
-| Behavior > Auto-fix pull requests    | `behavior.auto_fix_pull_requests`    |
+| Web UI 欄                                 | YAML フィールド                           |
+| ----------------------------------------- | ----------------------------------------- |
+| Name                                      | `name`                                    |
+| Instructions                              | `instructions`                            |
+| Model                                     | `model`                                   |
+| Repositories                              | `repositories`                            |
+| Environment > Name                        | `environment.name`                        |
+| Environment > Network access              | `environment.network_access`              |
+| Environment > Environment variables       | `environment.variables`                   |
+| Environment > Setup script                | `environment.setup_script`                |
+| Trigger                                   | `triggers`                                |
+| Connectors                                | `connectors`                              |
+| Behavior > Auto-fix pull requests         | `behavior.auto_fix_pull_requests`         |
 | Permissions > Allow unrestricted git push | `permissions.allow_unrestricted_git_push` |
 
 リポ管理用フィールド（Web UI に対応欄なし）:
 
-| フィールド    | 用途                                                          |
-| ------------- | ------------------------------------------------------------- |
-| `notes`       | 一行サマリ + 運用メモ。1 行目が一行サマリ、空行後にメモを続ける |
-| `status`      | `active`（Web UI 登録済み） / `draft`（未登録）                |
-| `routine_id`  | Web UI 登録後に発行される `trig_xxxx`。draft の間は空          |
+| フィールド   | 用途                                                            |
+| ------------ | --------------------------------------------------------------- |
+| `notes`      | 一行サマリ + 運用メモ。1 行目が一行サマリ、空行後にメモを続ける |
+| `status`     | `active`（Web UI 登録済み） / `draft`（未登録）                 |
+| `routine_id` | Web UI 登録後に発行される `trig_xxxx`。draft の間は空           |
 
 ## 運用ルール
 
