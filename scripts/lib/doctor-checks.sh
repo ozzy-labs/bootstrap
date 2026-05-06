@@ -7,7 +7,7 @@
 # 前提: SCRIPT_DIR が定義されていること（リポジトリ内 dotfiles の解決用）。
 
 # 1. システム基本ツールの検証
-# bootstrap が動くために最低限必要な CLI が揃っているかをチェック
+# agentic-bootstrap が動くために最低限必要な CLI が揃っているかをチェック
 check_system_tools() {
   local tools=(curl git unzip xz tar)
   local tool

@@ -1,13 +1,13 @@
-# bootstrap
+# agentic-bootstrap
 
 **開発ホストを AI エージェント駆動開発向けにワンコマンド構築 — WSL2 / Linux (Ubuntu/Debian-based) / macOS、Dev Container / 直接開発の両対応**
 
-[![Lint](https://github.com/ozzy-labs/bootstrap/actions/workflows/lint.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/lint.yaml)
-[![Unit](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-unit.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-unit.yaml)
-[![Smoke](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-smoke.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-smoke.yaml)
-[![Integration](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-integration.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-integration.yaml)
-[![License: MIT](https://img.shields.io/github/license/ozzy-labs/bootstrap)](LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/ozzy-labs/bootstrap?include_prereleases&label=release)](https://github.com/ozzy-labs/bootstrap/releases/latest)
+[![Lint](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/lint.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/lint.yaml)
+[![Unit](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-unit.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-unit.yaml)
+[![Smoke](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-smoke.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-smoke.yaml)
+[![Integration](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-integration.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-integration.yaml)
+[![License: MIT](https://img.shields.io/github/license/ozzy-labs/agentic-bootstrap)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/ozzy-labs/agentic-bootstrap?include_prereleases&label=release)](https://github.com/ozzy-labs/agentic-bootstrap/releases/latest)
 
 **[English](README.md) | 日本語**
 
@@ -43,7 +43,7 @@
 ## 2. リポジトリ構成
 
 ```
-bootstrap/
+agentic-bootstrap/
 ├── install.sh                      # OS 自動判定で dispatch（Linux → ubuntu, Darwin → macos）
 ├── README.md
 ├── README.ja.md
@@ -79,7 +79,7 @@ bootstrap/
 ```bash
 # 1. zsh セットアップ（推奨：最初に実行）
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- zsh
 
 # 2. ターミナルを再起動
 exit
@@ -87,7 +87,7 @@ exit
 
 # 3. 開発ツールをセットアップ（mise, 言語環境, Docker, AI CLI, AI パワーツール等）
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- local
 
 # 4. インストール済みのものだけ認証を完了
 aws configure      # または aws configure sso
@@ -111,14 +111,14 @@ gemini              # 初回起動時に Google アカウントで認証
 ```bash
 # 一時ファイルにダウンロード
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh \
-  -o /tmp/bootstrap-install.sh
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh \
+  -o /tmp/agentic-bootstrap-install.sh
 
 # 内容を確認
-less /tmp/bootstrap-install.sh
+less /tmp/agentic-bootstrap-install.sh
 
 # 実行
-bash /tmp/bootstrap-install.sh local
+bash /tmp/agentic-bootstrap-install.sh local
 ```
 
 ### 4.2 SHA256 でリリース版を検証する
@@ -128,7 +128,7 @@ bash /tmp/bootstrap-install.sh local
 ```bash
 # 特定リリースに固定（v0.1.0 を最新タグに置き換える）
 TAG=v0.1.0
-BASE="https://github.com/ozzy-labs/bootstrap/releases/download/${TAG}"
+BASE="https://github.com/ozzy-labs/agentic-bootstrap/releases/download/${TAG}"
 
 # スクリプトとチェックサムをダウンロード
 curl --proto '=https' --tlsv1.2 -fsSL "${BASE}/install.sh" -o install.sh
@@ -144,8 +144,8 @@ bash install.sh local
 ### 4.3 clone して実行（コントリビュータ / fork 利用者向け）
 
 ```bash
-git clone https://github.com/ozzy-labs/bootstrap.git
-cd bootstrap
+git clone https://github.com/ozzy-labs/agentic-bootstrap.git
+cd agentic-bootstrap
 ./install.sh zsh
 ./install.sh local
 ```
@@ -220,7 +220,7 @@ Ubuntu/Debian 環境（WSL2 + 非 WSL Linux）で zsh + oh-my-zsh + プラグイ
 
 ```bash
 # install.sh 経由で実行（初回セットアップ向け）
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- zsh
 
 # clone 済みリポジトリから実行
 ./install.sh zsh
@@ -344,7 +344,7 @@ Ubuntu/Debian 環境（WSL2 + 非 WSL Linux：Ubuntu Server / EC2 / GCE / コン
 
 ```bash
 # install.sh 経由で実行（初回セットアップ向け）
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- local
 
 # clone 済みリポジトリから実行
 ./install.sh local
@@ -641,7 +641,7 @@ SETUP_LOG=/tmp/update.log ./install.sh update
 **6.5.4 出力例**
 
 ```
-🩺 bootstrap doctor を実行中...
+🩺 agentic-bootstrap doctor を実行中...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 診断結果
@@ -654,7 +654,7 @@ SETUP_LOG=/tmp/update.log ./install.sh update
    ↳ 対処: eval "$(mise activate bash)"  # または zsh
 ✅ [mise-tools] node は mise 管理下 (current: 24.15.0)
 ⚠️  [chezmoi] ドットファイルに drift あり (12 行の差分)
-   ↳ 対処: chezmoi apply --source /path/to/bootstrap/dotfiles
+   ↳ 対処: chezmoi apply --source /path/to/agentic-bootstrap/dotfiles
 
 サマリー: ✅ 11  ⚠️  2  ❌ 0
 ```
@@ -778,4 +778,4 @@ cat /home/user/setup-local-ubuntu-20250109-123456.log
 
 ## 9. 変更履歴
 
-プロジェクトの変更履歴は [CHANGELOG.md](CHANGELOG.md) で自動管理されています（[release-please](https://github.com/googleapis/release-please) が Conventional Commits から生成）。各リリースの詳細は [GitHub Releases](https://github.com/ozzy-labs/bootstrap/releases) を参照してください。
+プロジェクトの変更履歴は [CHANGELOG.md](CHANGELOG.md) で自動管理されています（[release-please](https://github.com/googleapis/release-please) が Conventional Commits から生成）。各リリースの詳細は [GitHub Releases](https://github.com/ozzy-labs/agentic-bootstrap/releases) を参照してください。
