@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly REPO_OWNER="ozzy-labs"
-readonly REPO_NAME="bootstrap"
+readonly REPO_NAME="agentic-bootstrap"
 readonly DEFAULT_REF="${BOOTSTRAP_REF:-main}"
 
 # OS 判定: install.sh local / all が dispatch 先のスクリプトを切り替えるために使う
@@ -18,7 +18,7 @@ usage() {
   cat <<'EOF'
 Usage:
   ./install.sh [zsh|local|all|update|doctor] [--ref <git-ref>] [--auto|--interactive]
-  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- [zsh|local|all|update|doctor] [--ref <git-ref>] [--auto|--interactive]
+  curl -fsSL https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- [zsh|local|all|update|doctor] [--ref <git-ref>] [--auto|--interactive]
 
 Commands:
   zsh     Run scripts/setup-zsh-linux.sh (Linux/WSL only; macOS skips with a notice)

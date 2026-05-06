@@ -1,13 +1,13 @@
-# bootstrap
+# agentic-bootstrap
 
 **One-shot host setup for AI-agent-driven development — WSL2 / Linux (Ubuntu/Debian-based) / macOS, Dev Container or direct host use**
 
-[![Lint](https://github.com/ozzy-labs/bootstrap/actions/workflows/lint.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/lint.yaml)
-[![Unit](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-unit.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-unit.yaml)
-[![Smoke](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-smoke.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-smoke.yaml)
-[![Integration](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-integration.yaml/badge.svg)](https://github.com/ozzy-labs/bootstrap/actions/workflows/test-integration.yaml)
-[![License: MIT](https://img.shields.io/github/license/ozzy-labs/bootstrap)](LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/ozzy-labs/bootstrap?include_prereleases&label=release)](https://github.com/ozzy-labs/bootstrap/releases/latest)
+[![Lint](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/lint.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/lint.yaml)
+[![Unit](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-unit.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-unit.yaml)
+[![Smoke](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-smoke.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-smoke.yaml)
+[![Integration](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-integration.yaml/badge.svg)](https://github.com/ozzy-labs/agentic-bootstrap/actions/workflows/test-integration.yaml)
+[![License: MIT](https://img.shields.io/github/license/ozzy-labs/agentic-bootstrap)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/ozzy-labs/agentic-bootstrap?include_prereleases&label=release)](https://github.com/ozzy-labs/agentic-bootstrap/releases/latest)
 
 **English | [日本語](README.ja.md)**
 
@@ -43,7 +43,7 @@ A comprehensive collection of shell scripts that bootstraps a development host (
 ## 2. Repository Structure
 
 ```
-bootstrap/
+agentic-bootstrap/
 ├── install.sh                      # OS-aware dispatcher (Linux → linux, Darwin → macos)
 ├── README.md
 ├── README.ja.md
@@ -79,7 +79,7 @@ bootstrap/
 ```bash
 # 1. Set up zsh (recommended first)
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- zsh
 
 # 2. Restart your terminal
 exit
@@ -87,7 +87,7 @@ exit
 
 # 3. Set up development tools (mise, languages, Docker, AI CLIs, AI power tools, ...)
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- local
 
 # 4. Complete required authentications (for what you installed)
 aws configure      # or: aws configure sso
@@ -111,14 +111,14 @@ If you prefer to read the script before running it, download first and review:
 ```bash
 # Download to a temp file
 curl --proto '=https' --tlsv1.2 -fsSL \
-  https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh \
-  -o /tmp/bootstrap-install.sh
+  https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh \
+  -o /tmp/agentic-bootstrap-install.sh
 
 # Review the contents
-less /tmp/bootstrap-install.sh
+less /tmp/agentic-bootstrap-install.sh
 
 # Run it
-bash /tmp/bootstrap-install.sh local
+bash /tmp/agentic-bootstrap-install.sh local
 ```
 
 ### 4.2 Verify a release with SHA256
@@ -128,7 +128,7 @@ For pinned, reproducible installs, use a tagged release. Each GitHub Release shi
 ```bash
 # Pin to a specific release (replace v0.1.0 with the latest tag)
 TAG=v0.1.0
-BASE="https://github.com/ozzy-labs/bootstrap/releases/download/${TAG}"
+BASE="https://github.com/ozzy-labs/agentic-bootstrap/releases/download/${TAG}"
 
 # Download both the script and its checksum
 curl --proto '=https' --tlsv1.2 -fsSL "${BASE}/install.sh" -o install.sh
@@ -144,8 +144,8 @@ bash install.sh local
 ### 4.3 Clone-and-run (for contributors / forkers)
 
 ```bash
-git clone https://github.com/ozzy-labs/bootstrap.git
-cd bootstrap
+git clone https://github.com/ozzy-labs/agentic-bootstrap.git
+cd agentic-bootstrap
 ./install.sh zsh
 ./install.sh local
 ```
@@ -220,7 +220,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-zsh-li
 
 ```bash
 # Via install.sh (recommended for first-time setup)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- zsh
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- zsh
 
 # Basic execution from a cloned repository
 ./install.sh zsh
@@ -344,7 +344,7 @@ You can run it either through `install.sh` or directly via `scripts/setup-local-
 
 ```bash
 # Via install.sh (recommended for first-time setup)
-curl -fsSL https://raw.githubusercontent.com/ozzy-labs/bootstrap/main/install.sh | bash -s -- local
+curl -fsSL https://raw.githubusercontent.com/ozzy-labs/agentic-bootstrap/main/install.sh | bash -s -- local
 
 # Basic execution from a cloned repository
 ./install.sh local
@@ -641,7 +641,7 @@ Each non-`✅` finding is paired with a copy-paste-ready fix hint. The Doctor ne
 **6.5.4 Sample Output**
 
 ```
-🩺 bootstrap doctor を実行中...
+🩺 agentic-bootstrap doctor を実行中...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 診断結果
@@ -654,7 +654,7 @@ Each non-`✅` finding is paired with a copy-paste-ready fix hint. The Doctor ne
    ↳ 対処: eval "$(mise activate bash)"  # または zsh
 ✅ [mise-tools] node は mise 管理下 (current: 24.15.0)
 ⚠️  [chezmoi] ドットファイルに drift あり (12 行の差分)
-   ↳ 対処: chezmoi apply --source /path/to/bootstrap/dotfiles
+   ↳ 対処: chezmoi apply --source /path/to/agentic-bootstrap/dotfiles
 
 サマリー: ✅ 11  ⚠️  2  ❌ 0
 ```
@@ -777,4 +777,4 @@ For detailed review process, see:
 
 ## 9. Changelog
 
-The changelog is auto-managed in [CHANGELOG.md](CHANGELOG.md) by [release-please](https://github.com/googleapis/release-please) from Conventional Commits. Per-release details are published on [GitHub Releases](https://github.com/ozzy-labs/bootstrap/releases).
+The changelog is auto-managed in [CHANGELOG.md](CHANGELOG.md) by [release-please](https://github.com/googleapis/release-please) from Conventional Commits. Per-release details are published on [GitHub Releases](https://github.com/ozzy-labs/agentic-bootstrap/releases).
