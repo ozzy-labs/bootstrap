@@ -1,7 +1,7 @@
 # Auto-updated by commons sync.sh
 # 'pinned' is user-editable — add or remove paths freely
-commit: fe046f2142c1f79fa0966f015163c883b56da03f
-synced_at: 2026-05-06T07:51:14Z
+commit: ac77e891c557659e0e9d1c3f76ad58178691553b
+synced_at: 2026-05-06T08:54:46Z
 skills_commit: 4d35fa3683789c8b4a8633bf6aa5bf8e5e7bc230
 skills_adapters:
   - claude-code
@@ -21,6 +21,6 @@ pinned:
   - .vscode/extensions.json
   - .vscode/settings.json
   - biome.json
-  - lefthook-base.yaml
+  - lefthook.yaml
   - renovate.json
   - trivy.yaml

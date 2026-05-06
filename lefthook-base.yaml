@@ -4,31 +4,44 @@
 #   extends:
 #     - lefthook-base.yaml
 #
-# Then add repo-specific commands (biome, taplo, ruff, etc.)
+# Then add repo-specific commands (biome, ruff, etc.)
+#
+# All commands run via `mise exec --` so hooks succeed even when the calling
+# shell hasn't run `mise activate` (e.g. `bash -c 'git commit ...'`, IDE
+# integrations). See ozzy-labs/commons#117.
 
 glob_matcher: doublestar
 
 commit-msg:
   commands:
     commitlint:
-      run: commitlint --edit {1}
+      # NODE_PATH lets commitlint resolve @commitlint/config-conventional when
+      # both packages are installed via mise's npm: backend, which places each
+      # package in its own isolated install dir.
+      run: |
+        NODE_PATH="$(mise where npm:@commitlint/config-conventional 2>/dev/null)/lib/node_modules" \
+          mise exec -- commitlint --edit {1}
 
 pre-commit:
   parallel: true
   commands:
     shell:
       glob: "**/*.sh"
-      run: shfmt -w {staged_files} && shellcheck --severity=warning {staged_files}
+      run: mise exec -- shfmt -w {staged_files} && mise exec -- shellcheck {staged_files}
       stage_fixed: true
     markdownlint:
       glob: "**/*.md"
-      run: markdownlint-cli2 --fix {staged_files}
+      run: mise exec -- markdownlint-cli2 --fix {staged_files}
       stage_fixed: true
     yaml:
       glob: "**/*.{yaml,yml}"
-      run: yamlfmt {staged_files} && yamllint -c .yamllint.yaml {staged_files}
+      run: mise exec -- yamlfmt {staged_files} && mise exec -- yamllint -c .yamllint.yaml {staged_files}
+      stage_fixed: true
+    taplo:
+      glob: "**/*.toml"
+      run: mise exec -- taplo format {staged_files}
       stage_fixed: true
     gitleaks:
-      run: gitleaks protect --staged --no-banner
+      run: mise exec -- gitleaks protect --staged --no-banner
     trivy:
-      run: trivy fs --scanners vuln --exit-code 1 --no-progress .
+      run: mise exec -- trivy fs --scanners vuln,secret --exit-code 1 --no-progress .
