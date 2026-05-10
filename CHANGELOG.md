@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ozzy-labs/agentic-bootstrap/compare/v0.2.0...v0.2.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **install:** legacy PPA .sources detection and bundled .mise.toml auto-trust ([#140](https://github.com/ozzy-labs/agentic-bootstrap/issues/140)) ([1036805](https://github.com/ozzy-labs/agentic-bootstrap/commit/10368051c9106f8c099369daa794a09c03e56178))
+
 ## [0.2.0](https://github.com/ozzy-labs/agentic-bootstrap/compare/v0.1.4...v0.2.0) (2026-05-06)
 
 
