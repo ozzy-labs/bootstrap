@@ -419,8 +419,7 @@ fi
 echo ""
 echo "🔧 Git（最新安定版）をインストール中..."
 
-if [ ! -f /etc/apt/sources.list.d/git-core.list ] &&
-  ! compgen -G "/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list" >/dev/null 2>&1; then
+if ! apt_ppa_registered "git-core" "git-core"; then
   echo "  ℹ️  Git公式PPAを追加しています..."
   apt_add_ppa "git-core" "ppa" "F911AB184317630C59970973E363C90F8F1B6217" "git-core"
   sudo apt-get update >/dev/null
@@ -456,6 +455,9 @@ install_build_tools
 install_basic_cli_tools
 install_git_tools
 install_mise_and_languages
+# install.sh が同梱する .mise.toml を信頼。これをやらないと末尾サマリで
+# `node --version` 等の mise shim 呼び出しが "not trusted" で失敗する。
+mise_trust_repo_config "$(dirname "$SCRIPT_DIR")"
 install_git_security_tools
 install_container_tools
 install_cloud_tools

@@ -64,6 +64,37 @@ _mise_at_home() {
   (cd "$HOME" && "$MISE_BIN" "$@")
 }
 
+# install.sh が同梱する `<repo>/.mise.toml` を mise の信頼設定に登録する。
+# install.sh 末尾でインストール状況サマリを出すため `node --version` 等の
+# mise shim を CWD = リポジトリで呼び出すが、未承認の .mise.toml があると
+# mise が "Config files in ... are not trusted" でエラー終了するため、
+# それを未然に防ぐ。
+#
+# trust 範囲は SCRIPT_DIR から解決した固定パスのみ（CWD やユーザ入力は不使用）。
+# trust はファイル内容ハッシュ単位なので、後の改ざんで自動失効する。
+# 同パターンは .devcontainer/Dockerfile でも採用済み。
+#
+# $1: repo_root（.mise.toml が存在することが期待される親ディレクトリ）
+# 戻り値: 常に 0（trust 失敗は警告のみで先へ進める）
+mise_trust_repo_config() {
+  local repo_root="$1"
+  local config="$repo_root/.mise.toml"
+
+  if [ ! -f "$config" ]; then
+    return 0
+  fi
+  if ! [ -x "$MISE_BIN" ]; then
+    return 0
+  fi
+
+  if _mise_at_home trust "$config" >/dev/null 2>&1; then
+    echo "  ✅ $config を mise の信頼設定に登録しました"
+  else
+    echo "  ⚠️  $config の trust 登録に失敗しました（手動で 'mise trust $config' を実行してください）"
+  fi
+  return 0
+}
+
 # mise でグローバルツールを導入する汎用ヘルパー
 # $1: tool_spec（例: node@lts, python@latest, gitleaks@8.30.1, github:astral-sh/uv@0.11.9）
 # $2: display_name（表示名）
