@@ -14,6 +14,11 @@ setup() {
   # モック呼び出しログのファイル
   export MOCK_LOG="$BATS_TEST_TMPDIR/mock.log"
   : >"$MOCK_LOG"
+
+  # apt_ppa_registered がホスト実体（/etc/apt/sources.list.d）を見ないように
+  # テスト専用ディレクトリへ差し替える
+  export _APT_SOURCES_LIST_D="$BATS_TEST_TMPDIR/sources.list.d"
+  mkdir -p "$_APT_SOURCES_LIST_D"
 }
 
 # モック: sudo は引数をそのままログして 0 を返す
@@ -124,4 +129,69 @@ export -f apt-get
   run apt_add_ppa "git-core" "ppa" "DEADBEEF" "git-core"
   [ "$status" -ne 0 ]
   [[ "$output" == *"取得に失敗"* ]]
+}
+
+# ------------------------------------------------------------------
+# apt_ppa_registered: 直接書き込み形式（.list）の存在を検出
+# ------------------------------------------------------------------
+
+@test "apt_ppa_registered: detects directly-written .list" {
+  : >"$_APT_SOURCES_LIST_D/git-core.list"
+  run apt_ppa_registered "git-core" "git-core"
+  [ "$status" -eq 0 ]
+}
+
+# ------------------------------------------------------------------
+# apt_ppa_registered: add-apt-repository 由来の deb822 .sources を検出
+# （これが今回のリグレッションの本丸: 旧 install.sh が残した .sources を見逃すと
+# apt_add_ppa が再登録してしまい Signed-By 競合で apt-get update が失敗する）
+# ------------------------------------------------------------------
+
+@test "apt_ppa_registered: detects add-apt-repository .sources (deb822)" {
+  : >"$_APT_SOURCES_LIST_D/git-core-ubuntu-ppa-noble.sources"
+  run apt_ppa_registered "git-core" "git-core"
+  [ "$status" -eq 0 ]
+}
+
+# ------------------------------------------------------------------
+# apt_ppa_registered: add-apt-repository 由来の旧 .list（22.04 以前）も検出
+# ------------------------------------------------------------------
+
+@test "apt_ppa_registered: detects add-apt-repository .list" {
+  : >"$_APT_SOURCES_LIST_D/git-core-ubuntu-ppa-jammy.list"
+  run apt_ppa_registered "git-core" "git-core"
+  [ "$status" -eq 0 ]
+}
+
+# ------------------------------------------------------------------
+# apt_ppa_registered: 何も無ければ未登録
+# ------------------------------------------------------------------
+
+@test "apt_ppa_registered: returns non-zero when nothing matches" {
+  run apt_ppa_registered "git-core" "git-core"
+  [ "$status" -ne 0 ]
+}
+
+# ------------------------------------------------------------------
+# apt_add_ppa: 既登録（.sources のみ）なら何もせず短絡終了する
+# curl / gpg / tee いずれも呼ばれないことを保証する
+# ------------------------------------------------------------------
+
+@test "apt_add_ppa: short-circuits when .sources already exists" {
+  : >"$_APT_SOURCES_LIST_D/git-core-ubuntu-ppa-noble.sources"
+
+  lsb_release() { echo "noble"; }
+  export -f lsb_release
+
+  curl() {
+    echo "curl $*" >>"$MOCK_LOG"
+    return 0
+  }
+  export -f curl
+
+  run apt_add_ppa "git-core" "ppa" "DEADBEEF" "git-core"
+  [ "$status" -eq 0 ]
+  ! grep -q "curl" "$MOCK_LOG"
+  ! grep -q "sudo gpg --dearmor" "$MOCK_LOG"
+  ! grep -q "sudo tee /etc/apt/sources.list.d/git-core.list" "$MOCK_LOG"
 }

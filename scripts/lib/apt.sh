@@ -23,6 +23,30 @@ apt_install_or_upgrade() {
   fi
 }
 
+# 指定 PPA owner が既にホストへ登録されているかを判定する。
+# 過去に add-apt-repository 由来で deb822 形式の `.sources` が作られているケースと、
+# 直接書き込みの `.list` が共存しうるため、両形式を網羅的にチェックする。
+#
+# $1: PPA owner（例: git-core）
+# $2: 直接書き込み時の basename（例: git-core）
+#
+# 環境変数:
+#   _APT_SOURCES_LIST_D — テスト時に sources.list.d パスを差し替えるためのシーム
+#
+# 戻り値: 0 = 既に登録済み、1 = 未登録
+apt_ppa_registered() {
+  local owner="$1"
+  local basename="$2"
+  local dir="${_APT_SOURCES_LIST_D:-/etc/apt/sources.list.d}"
+
+  # 直接書き込み方式（apt_add_ppa が作成）
+  [ -f "${dir}/${basename}.list" ] && return 0
+  # add-apt-repository 由来（旧 install.sh が作成、Ubuntu 22.04+ は deb822 .sources）
+  compgen -G "${dir}/${owner}-ubuntu-*.list" >/dev/null 2>&1 && return 0
+  compgen -G "${dir}/${owner}-ubuntu-*.sources" >/dev/null 2>&1 && return 0
+  return 1
+}
+
 # PPA を Launchpad の API を経由せず直接登録する。
 # add-apt-repository は api.launchpad.net に問い合わせて鍵 ID と URL を解決するが、
 # その API は間欠的に到達不能になるため、ここでは
@@ -35,12 +59,19 @@ apt_install_or_upgrade() {
 # $3: GPG key fingerprint（40 桁 16 進、例: F911AB184317630C59970973E363C90F8F1B6217）
 # $4: keyring / list の basename（例: git-core）
 #
-# 戻り値: 0 = 成功、非 0 = 失敗
+# 戻り値: 0 = 成功（新規登録または既登録の検出）、非 0 = 失敗
 apt_add_ppa() {
   local owner="$1"
   local name="$2"
   local key_id="$3"
   local basename="$4"
+
+  # 既に登録済み（旧 add-apt-repository 由来の .sources を含む）なら何もしない。
+  # 同一 PPA を異なる Signed-By で重複登録すると apt-get update が
+  # "Conflicting values set for option Signed-By" で失敗する。
+  if apt_ppa_registered "$owner" "$basename"; then
+    return 0
+  fi
 
   local keyring="/usr/share/keyrings/${basename}.gpg"
   local list="/etc/apt/sources.list.d/${basename}.list"
@@ -50,10 +81,6 @@ apt_add_ppa() {
   if [ -z "$codename" ]; then
     echo "  ❌ ディストリ codename を取得できません（lsb_release が必要）" >&2
     return 1
-  fi
-
-  if [ -f "$list" ]; then
-    return 0
   fi
 
   local tmpkey

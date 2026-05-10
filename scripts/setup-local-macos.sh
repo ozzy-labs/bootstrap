@@ -78,6 +78,27 @@ _mise_at_home() {
   (cd "$HOME" && "$MISE_BIN" "$@")
 }
 
+# install.sh が同梱する `<repo>/.mise.toml` を mise の信頼設定に登録する。
+# 詳細は scripts/lib/mise.sh の同名関数のコメントを参照（Linux/macOS で同一仕様）。
+mise_trust_repo_config() {
+  local repo_root="$1"
+  local config="$repo_root/.mise.toml"
+
+  if [ ! -f "$config" ]; then
+    return 0
+  fi
+  if ! [ -x "$MISE_BIN" ]; then
+    return 0
+  fi
+
+  if _mise_at_home trust "$config" >/dev/null 2>&1; then
+    echo "  ✅ $config を mise の信頼設定に登録しました"
+  else
+    echo "  ⚠️  $config の trust 登録に失敗しました（手動で 'mise trust $config' を実行してください）"
+  fi
+  return 0
+}
+
 # mise を初期化（未インストールならインストール、既存なら自己更新）
 ensure_mise_installed() {
   if [ "${_MISE_INITIALIZED:-0}" = "1" ]; then
@@ -282,6 +303,9 @@ fi
 
 # 3. インストール処理
 install_mise_and_languages
+# install.sh が同梱する .mise.toml を信頼。これをやらないと末尾サマリで
+# `node --version` 等の mise shim 呼び出しが "not trusted" で失敗する。
+mise_trust_repo_config "$(dirname "$SCRIPT_DIR")"
 install_git_security_tools
 install_ai_power_tools
 install_dev_tools

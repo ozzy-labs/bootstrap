@@ -19,6 +19,26 @@ if ! /workspace/install.sh local 2>&1 | tee "$RUN1_LOG"; then
   exit 1
 fi
 
+# 致命的エラーキーワードの検出。
+# install.sh は version display 等で `2>/dev/null` を多用しており、
+# 終了コードだけでは silent failure を捕まえられない。
+# 実例:
+#   - mise の untrusted config エラー（`.mise.toml` を信頼登録していない場合に
+#     shim 呼び出しが拒否される。https://github.com/ozzy-labs/agentic-bootstrap/issues 参照）
+#   - apt の Signed-By 競合（旧 add-apt-repository 由来 `.sources` と新 `.list` の併存）
+# install.sh が表向き完走しても、これらキーワードがログに出ていれば実環境では
+# ユーザーに見えるエラーが発生しているので、ここで明示的に弾く。
+assert_no_fatal_errors() {
+  local log="$1"
+  local label="$2"
+  local pattern='mise ERROR|^E: |Conflicting values set for option|unbound variable|: command not found'
+  if grep -E "$pattern" "$log"; then
+    echo "❌ $label: fatal-keyword stderr が検出されました（上記参照）"
+    exit 1
+  fi
+}
+assert_no_fatal_errors "$RUN1_LOG" "1st run"
+
 printf '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
 printf '🔍 Asserting tool installations\n'
 printf '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
@@ -38,6 +58,7 @@ if ! /workspace/install.sh local 2>&1 | tee "$RUN2_LOG"; then
   echo "❌ 2nd run failed"
   exit 1
 fi
+assert_no_fatal_errors "$RUN2_LOG" "2nd run"
 
 printf '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
 printf '📊 Idempotency verdict\n'
